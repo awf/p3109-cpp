@@ -1,4 +1,5 @@
 #include <array>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -128,19 +129,117 @@ bool run_suite(const std::string &test_name)
     return false;
 }
 
+template <unsigned K, unsigned PMin, unsigned PMax>
+bool run_for_p_signed(unsigned p, const std::string &test_name)
+{
+    if (p == PMin)
+        return run_suite<TestDecode<K, PMin, p3109::Signed, p3109::Extended>>(test_name);
+
+    if constexpr (PMin < PMax)
+        return run_for_p_signed<K, PMin + 1, PMax>(p, test_name);
+
+    return false;
+}
+
+template <unsigned K, unsigned PMin, unsigned PMax>
+bool run_for_p_unsigned(unsigned p, const std::string &test_name)
+{
+    if (p == PMin)
+        return run_suite<TestDecode<K, PMin, p3109::Unsigned, p3109::Extended>>(test_name);
+
+    if constexpr (PMin < PMax)
+        return run_for_p_unsigned<K, PMin + 1, PMax>(p, test_name);
+
+    return false;
+}
+
+template <unsigned KMin, unsigned KMax>
+bool run_for_k(unsigned k, unsigned p, const std::string &test_name, p3109::Signedness sigma)
+{
+    if (k == KMin)
+    {
+        constexpr unsigned p_max_signed = KMin - 1;
+        // NOTE: current DecodeAux implementation instantiates signed recursion,
+        // so keep unsigned dispatch to P <= K-1 in this runner.
+        constexpr unsigned p_max_unsigned = KMin - 1;
+        const unsigned p_max = (sigma == p3109::Signed) ? p_max_signed : p_max_unsigned;
+
+        if (p < 1 || p > p_max)
+            return false;
+
+        if (sigma == p3109::Signed)
+            return run_for_p_signed<KMin, 1, p_max_signed>(p, test_name);
+        return run_for_p_unsigned<KMin, 1, p_max_unsigned>(p, test_name);
+    }
+
+    if constexpr (KMin < KMax)
+        return run_for_k<KMin + 1, KMax>(k, p, test_name, sigma);
+
+    return false;
+}
+
+bool parse_signedness(const std::string &s, p3109::Signedness &out)
+{
+    if (s == "signed" || s == "Signed")
+    {
+        out = p3109::Signed;
+        return true;
+    }
+    if (s == "unsigned" || s == "Unsigned")
+    {
+        out = p3109::Unsigned;
+        return true;
+    }
+    return false;
+}
+
+bool parse_uint_arg(const char *arg, unsigned &out)
+{
+    try
+    {
+        const auto value = std::stoul(arg);
+        out = static_cast<unsigned>(value);
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc != 5)
     {
-        std::cerr << "Usage: p3109_tests <test-name>\n";
+        std::cerr << "Usage: p3109_tests <test-name> <K> <P> <signed|unsigned>\n";
         return EXIT_FAILURE;
     }
-    auto test_name = std::string(argv[1]);
 
-    bool ok = true;
-    ok = ok && run_suite<TestDecode<8, 3, p3109::Signed, p3109::Extended>>(test_name);
-    ok = ok && run_suite<TestDecode<8, 4, p3109::Signed, p3109::Extended>>(test_name);
-    ok = ok && run_suite<TestDecode<8, 3, p3109::Unsigned, p3109::Extended>>(test_name);
+    const std::string test_name = argv[1];
+    unsigned k = 0;
+    unsigned p = 0;
+    p3109::Signedness sigma = p3109::Signed;
 
-    return ok ? EXIT_SUCCESS : EXIT_FAILURE;
+    if (!parse_uint_arg(argv[2], k) || !parse_uint_arg(argv[3], p) || !parse_signedness(argv[4], sigma))
+    {
+        std::cerr << "Invalid arguments. Usage: p3109_tests <test-name> <K> <P> <signed|unsigned>\n";
+        return EXIT_FAILURE;
+    }
+
+    if (k < 3 || k > 16)
+    {
+        std::cerr << "Unsupported K=" << k << ". Supported range is 3..16.\n";
+        return EXIT_FAILURE;
+    }
+
+    const bool ok = run_for_k<3, 16>(k, p, test_name, sigma);
+    if (!ok)
+    {
+        std::cerr << "Unsupported combination for K=" << k << ", P=" << p
+                  << ", signedness=" << (sigma == p3109::Signed ? "signed" : "unsigned")
+                  << ". Supported in this runner: 3<=K<=16 and 1<=P<=K-1.\n";
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

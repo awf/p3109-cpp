@@ -15,17 +15,15 @@ jobs:
           - os: ubuntu-latest
             name: Linux Release
             build_type: Release
-            extra_cmake_flags: ""
+            sanitizers: false
           - os: ubuntu-latest
             name: Linux Sanitizers
             build_type: Debug
-            extra_cmake_flags: >-
-              -DCMAKE_CXX_FLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer
-              -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined
+            sanitizers: true
           - os: macos-latest
             name: macOS Release
             build_type: Release
-            extra_cmake_flags: ""
+            sanitizers: false
 
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.name }}
@@ -53,16 +51,19 @@ jobs:
 
       - name: Configure
         run: |
-          if [ "${{ runner.os }}" = "macOS" ]; then
+          if [ "${{ matrix.sanitizers }}" = "true" ]; then
+            cmake -S . -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
+              -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
             BREW_PREFIX="$(brew --prefix)"
             cmake -S . -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DCMAKE_PREFIX_PATH="$BREW_PREFIX;$BREW_PREFIX/opt/boost" \
-              ${{ matrix.extra_cmake_flags }}
+              -DCMAKE_PREFIX_PATH="$BREW_PREFIX;$BREW_PREFIX/opt/boost"
           else
             cmake -S . -B build -G Ninja \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              ${{ matrix.extra_cmake_flags }}
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           fi
 
       - name: Build

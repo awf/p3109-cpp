@@ -20,7 +20,7 @@ add_executable(p3109_demo p3109.cpp)
 target_include_directories(p3109_demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(p3109_demo PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 
-add_executable(p3109_tests tests/test_decode.cpp)
+add_executable(p3109_tests tests/test_decode.cpp tests/test_utils.cpp)
 target_include_directories(p3109_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(p3109_tests PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 

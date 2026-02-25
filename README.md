@@ -23,3 +23,19 @@ The CI workflow runs on push/PR with a matrix that includes:
 - Linux Release build + tests
 - Linux Sanitizers build (`ASan` + `UBSan`) + tests
 - macOS Release build + tests
+
+## Local pre-commit sanitizers
+
+This repo includes a tracked pre-commit hook at [.githooks/pre-commit](.githooks/pre-commit) that runs sanitizer build/tests via [scripts/run-sanitizers.sh](scripts/run-sanitizers.sh).
+
+Enable it once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Run sanitizer checks manually anytime:
+
+```bash
+./scripts/run-sanitizers.sh
+```

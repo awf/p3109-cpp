@@ -10,10 +10,10 @@
 namespace
 {
     template <unsigned K, unsigned P, p3109::Signedness Sigma, p3109::Domain Delta>
-    struct TestDecode
+    struct TestEncode
     {
         using float_type = p3109::binary<K, P, Sigma, Delta>;
-        using test_fn = bool (TestDecode::*)();
+        using test_fn = bool (TestEncode::*)();
 
         struct test_case
         {
@@ -32,23 +32,23 @@ namespace
 
         bool test_zero()
         {
-            return test_utils::expect_equal(p3109::Decode(float_type{0}), p3109::mpfr_float(0), "Decode(0) should be 0");
+            return test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(p3109::mpfr_float(0)).codepoint == 0, "Encode(0) should be 0");
         }
 
         bool test_subnormal()
         {
-            return test_utils::expect_equal(
-                p3109::Decode(float_type{1}),
-                pow(p3109::mpfr_float(2), subnormal_exp),
-                "Decode(1) should match subnormal formula");
+            const auto x = pow(p3109::mpfr_float(2), subnormal_exp);
+            return test_utils::expect_true(
+                p3109::Encode<K, P, Sigma, Delta>(x).codepoint == 1,
+                "Encode(min positive subnormal quantum) should be 1");
         }
 
         bool test_normal()
         {
-            return test_utils::expect_equal(
-                p3109::Decode(float_type{trailing_modulus}),
-                pow(p3109::mpfr_float(2), normal_exp),
-                "Decode(2^(P-1)) should match normal formula");
+            const auto x = pow(p3109::mpfr_float(2), normal_exp);
+            return test_utils::expect_true(
+                p3109::Encode<K, P, Sigma, Delta>(x).codepoint == trailing_modulus,
+                "Encode(min normal) should be 2^(P-1)");
         }
 
         bool test_reflection()
@@ -56,10 +56,10 @@ namespace
             if constexpr (Sigma == p3109::Unsigned)
                 return true;
 
-            const std::uint64_t reflected_codepoint = two_to_km1 + 1;
-            const auto positive = p3109::Decode(float_type{1});
-            const auto reflected = p3109::Decode(float_type{reflected_codepoint});
-            return test_utils::expect_equal(reflected, -positive, "Signed reflection should hold for codepoint 1");
+            const auto x = pow(p3109::mpfr_float(2), subnormal_exp);
+            const auto pos = p3109::Encode<K, P, Sigma, Delta>(x).codepoint;
+            const auto neg = p3109::Encode<K, P, Sigma, Delta>(-x).codepoint;
+            return test_utils::expect_true(neg == pos + two_to_km1, "Signed reflection should hold for Encode");
         }
 
         bool test_special_values()
@@ -67,42 +67,39 @@ namespace
             if constexpr (Sigma == p3109::Signed)
             {
                 bool ok = true;
-
-                const std::uint64_t plus_inf_codepoint = two_to_km1 - 1;
-                const std::uint64_t nan_codepoint = two_to_km1;
-                const std::uint64_t minus_inf_codepoint = two_to_k - 1;
-
-                const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
-                const auto nan_value = p3109::Decode(float_type{nan_codepoint});
-                const auto minus_inf = p3109::Decode(float_type{minus_inf_codepoint});
-
-                ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Signed +inf codepoint should decode to +inf");
-                ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Signed NaN codepoint should decode to NaN");
-                ok &= test_utils::expect_true(boost::math::isinf(minus_inf) && minus_inf < 0, "Signed -inf codepoint should decode to -inf");
+                ok &= test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(p3109::mpfr_nan).codepoint == two_to_km1, "Signed NaN codepoint should be 2^(K-1)");
+                ok &= test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(p3109::mpfr_inf).codepoint == (two_to_km1 - 1), "Signed +inf codepoint should be 2^(K-1)-1");
+                ok &= test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(-p3109::mpfr_inf).codepoint == (two_to_k - 1), "Signed -inf codepoint should be 2^K-1");
                 return ok;
             }
 
             bool ok = true;
-
-            const std::uint64_t plus_inf_codepoint = two_to_k - 2;
-            const std::uint64_t nan_codepoint = two_to_k - 1;
-
-            const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
-            const auto nan_value = p3109::Decode(float_type{nan_codepoint});
-
-            ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Unsigned +inf codepoint should decode to +inf");
-            ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Unsigned NaN codepoint should decode to NaN");
+            ok &= test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(p3109::mpfr_nan).codepoint == (two_to_k - 1), "Unsigned NaN codepoint should be 2^K-1");
+            ok &= test_utils::expect_true(p3109::Encode<K, P, Sigma, Delta>(p3109::mpfr_inf).codepoint == (two_to_k - 2), "Unsigned +inf codepoint should be 2^K-2");
             return ok;
         }
 
-        static const std::array<test_case, 5> &all_test_cases()
+        bool test_roundtrip_sample()
         {
-            static const std::array<test_case, 5> cases{{
-                {"decode_zero", &TestDecode::test_zero},
-                {"decode_subnormal", &TestDecode::test_subnormal},
-                {"decode_normal", &TestDecode::test_normal},
-                {"decode_reflection", &TestDecode::test_reflection},
-                {"decode_special_values", &TestDecode::test_special_values},
+            for (std::uint64_t x : {0ull, 1ull, trailing_modulus, two_to_km1, two_to_k - 1})
+            {
+                const auto y = p3109::Decode<K, P, Sigma, Delta>(float_type{x});
+                const auto z = p3109::Encode<K, P, Sigma, Delta>(y).codepoint;
+                if (!test_utils::expect_true(z == x, "Encode(Decode(x)) should equal x for sampled codepoints"))
+                    return false;
+            }
+            return true;
+        }
+
+        static const std::array<test_case, 6> &all_test_cases()
+        {
+            static const std::array<test_case, 6> cases{{
+                {"encode_zero", &TestEncode::test_zero},
+                {"encode_subnormal", &TestEncode::test_subnormal},
+                {"encode_normal", &TestEncode::test_normal},
+                {"encode_reflection", &TestEncode::test_reflection},
+                {"encode_special_values", &TestEncode::test_special_values},
+                {"encode_roundtrip_sample", &TestEncode::test_roundtrip_sample},
             }};
             return cases;
         }
@@ -128,7 +125,7 @@ namespace
     p3109::tests::run_status run_for_p_signed(unsigned p, const std::string &test_name)
     {
         if (p == PMin)
-            return run_suite<TestDecode<K, PMin, p3109::Signed, p3109::Extended>>(test_name);
+            return run_suite<TestEncode<K, PMin, p3109::Signed, p3109::Extended>>(test_name);
 
         if constexpr (PMin < PMax)
             return run_for_p_signed<K, PMin + 1, PMax>(p, test_name);
@@ -140,7 +137,7 @@ namespace
     p3109::tests::run_status run_for_p_unsigned(unsigned p, const std::string &test_name)
     {
         if (p == PMin)
-            return run_suite<TestDecode<K, PMin, p3109::Unsigned, p3109::Extended>>(test_name);
+            return run_suite<TestEncode<K, PMin, p3109::Unsigned, p3109::Extended>>(test_name);
 
         if constexpr (PMin < PMax)
             return run_for_p_unsigned<K, PMin + 1, PMax>(p, test_name);
@@ -174,7 +171,7 @@ namespace
 
 namespace p3109::tests
 {
-    run_status run_decode(unsigned k, unsigned p, Signedness sigma, const std::string &test_name)
+    run_status run_encode(unsigned k, unsigned p, Signedness sigma, const std::string &test_name)
     {
         constexpr unsigned KMin = 3;
         constexpr unsigned KMax = 16;

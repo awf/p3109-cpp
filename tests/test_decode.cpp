@@ -54,6 +54,9 @@ struct TestDecode
 
     bool test_reflection()
     {
+        if constexpr (Sigma == p3109::Unsigned)
+            return true;
+
         const std::uint64_t reflected_codepoint = two_to_km1 + 1;
         const auto positive = p3109::Decode(float_type{1});
         const auto reflected = p3109::Decode(float_type{reflected_codepoint});
@@ -62,21 +65,37 @@ struct TestDecode
 
     bool test_special_values()
     {
-        bool ok = true;
+        if constexpr (Sigma == p3109::Signed)
+        {
+            bool ok = true;
 
-        const std::uint64_t plus_inf_codepoint = two_to_km1 - 1;
-        const std::uint64_t nan_codepoint = two_to_km1;
-        const std::uint64_t minus_inf_codepoint = two_to_k - 1;
+            const std::uint64_t plus_inf_codepoint = two_to_km1 - 1;
+            const std::uint64_t nan_codepoint = two_to_km1;
+            const std::uint64_t minus_inf_codepoint = two_to_k - 1;
 
-        const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
-        const auto nan_value = p3109::Decode(float_type{nan_codepoint});
-        const auto minus_inf = p3109::Decode(float_type{minus_inf_codepoint});
+            const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
+            const auto nan_value = p3109::Decode(float_type{nan_codepoint});
+            const auto minus_inf = p3109::Decode(float_type{minus_inf_codepoint});
 
-        ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Signed +inf codepoint should decode to +inf");
-        ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Signed NaN codepoint should decode to NaN");
-        ok &= test_utils::expect_true(boost::math::isinf(minus_inf) && minus_inf < 0, "Signed -inf codepoint should decode to -inf");
+            ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Signed +inf codepoint should decode to +inf");
+            ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Signed NaN codepoint should decode to NaN");
+            ok &= test_utils::expect_true(boost::math::isinf(minus_inf) && minus_inf < 0, "Signed -inf codepoint should decode to -inf");
+            return ok;
+        }
+        else
+        {
+            bool ok = true;
 
-        return ok;
+            const std::uint64_t plus_inf_codepoint = two_to_k - 2;
+            const std::uint64_t nan_codepoint = two_to_k - 1;
+
+            const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
+            const auto nan_value = p3109::Decode(float_type{nan_codepoint});
+
+            ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Unsigned +inf codepoint should decode to +inf");
+            ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Unsigned NaN codepoint should decode to NaN");
+            return ok;
+        }
     }
 
     static const std::array<test_case, 5> &all_test_cases()
@@ -93,7 +112,7 @@ struct TestDecode
 };
 
 template <typename TestSuite>
-int run_suite(const std::string &test_name)
+bool run_suite(const std::string &test_name)
 {
     p3109::ensure_mpfr_precision();
 
@@ -121,6 +140,7 @@ int main(int argc, char **argv)
     bool ok = true;
     ok = ok && run_suite<TestDecode<8, 3, p3109::Signed, p3109::Extended>>(test_name);
     ok = ok && run_suite<TestDecode<8, 4, p3109::Signed, p3109::Extended>>(test_name);
+    ok = ok && run_suite<TestDecode<8, 3, p3109::Unsigned, p3109::Extended>>(test_name);
 
     return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

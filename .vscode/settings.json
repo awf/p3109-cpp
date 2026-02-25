@@ -1,0 +1,6 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.ctestArgs": [
+        "--output-on-failure"
+    ]
+}

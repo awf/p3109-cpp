@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
 #include <type_traits>
 #include <boost/multiprecision/mpfr.hpp>
 
@@ -160,6 +161,17 @@ namespace p3109
                 return codepoint == neginf_codepoint;
             else
                 return false;
+        }
+
+        static std::string name()
+        {
+            std::string out = "binary";
+            out += std::to_string(K);
+            out += "p";
+            out += std::to_string(P);
+            out += (Sigma == Signed ? "s" : "u");
+            out += (Delta == Finite ? "f" : "x");
+            return out;
         }
     };
 

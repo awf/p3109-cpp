@@ -1,22 +1,18 @@
 #pragma once
 
+#include <initializer_list>
 #include <string>
+#include <string_view>
 
 #include "p3109.h"
 
 namespace test_utils
 {
-    template <typename Suite>
-    using test_fn = bool (Suite::*)();
-
-    template <typename Suite>
-    struct test_case
-    {
-        const char *name;
-        test_fn<Suite> fn;
-    };
-
     bool expect_true(bool value, const std::string &message);
 
     bool expect_equal(const p3109::mpfr_float &actual, const p3109::mpfr_float &expected, const std::string &message);
+
+    void init(const std::string &suite_name);
+    void run_test(std::initializer_list<std::string_view> path, bool passed);
+    int finalize();
 }

@@ -76,6 +76,18 @@ int main(int argc, char **argv)
     if (encode == p3109::tests::run_status::fail)
         return EXIT_FAILURE;
 
+    const auto project_ops = p3109::tests::run_project_ops(k, p, sigma, test_name);
+    if (project_ops == p3109::tests::run_status::pass)
+        return EXIT_SUCCESS;
+    if (project_ops == p3109::tests::run_status::fail)
+        return EXIT_FAILURE;
+
+    const auto sqrt = p3109::tests::run_sqrt(k, p, sigma, test_name);
+    if (sqrt == p3109::tests::run_status::pass)
+        return EXIT_SUCCESS;
+    if (sqrt == p3109::tests::run_status::fail)
+        return EXIT_FAILURE;
+
     std::cerr << "Unknown test case: " << test_name << "\n";
     return EXIT_FAILURE;
 }

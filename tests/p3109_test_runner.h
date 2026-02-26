@@ -15,4 +15,6 @@ namespace p3109::tests
 
     run_status run_decode(unsigned k, unsigned p, Signedness sigma, const std::string &test_name);
     run_status run_encode(unsigned k, unsigned p, Signedness sigma, const std::string &test_name);
+    run_status run_project_ops(unsigned k, unsigned p, Signedness sigma, const std::string &test_name);
+    run_status run_sqrt(unsigned k, unsigned p, Signedness sigma, const std::string &test_name);
 }

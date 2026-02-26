@@ -13,13 +13,8 @@ namespace
     struct TestDecode
     {
         using float_type = p3109::binary<K, P, Sigma, Delta>;
-        using test_fn = bool (TestDecode::*)();
-
-        struct test_case
-        {
-            const char *name;
-            test_fn fn;
-        };
+        using test_fn = test_utils::test_fn<TestDecode>;
+        using test_case = test_utils::test_case<TestDecode>;
 
         static constexpr std::uint64_t two_to_k = p3109::pow2_u64(K);
         static constexpr std::uint64_t two_to_km1 = p3109::pow2_u64(K - 1);
@@ -32,14 +27,14 @@ namespace
 
         bool test_zero()
         {
-            return test_utils::expect_equal(p3109::Decode(float_type{0}), p3109::mpfr_float(0), "Decode(0) should be 0");
+            return test_utils::expect_equal(p3109::Decode(float_type{0}), p3109::mpfr_float(0.0), "Decode(0) should be 0");
         }
 
         bool test_subnormal()
         {
             return test_utils::expect_equal(
                 p3109::Decode(float_type{1}),
-                pow(p3109::mpfr_float(2), subnormal_exp),
+                pow(p3109::mpfr_float(2.0), subnormal_exp),
                 "Decode(1) should match subnormal formula");
         }
 
@@ -47,7 +42,7 @@ namespace
         {
             return test_utils::expect_equal(
                 p3109::Decode(float_type{trailing_modulus}),
-                pow(p3109::mpfr_float(2), normal_exp),
+                pow(p3109::mpfr_float(2.0), normal_exp),
                 "Decode(2^(P-1)) should match normal formula");
         }
 

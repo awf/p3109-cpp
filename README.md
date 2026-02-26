@@ -26,7 +26,9 @@ The CI workflow runs on push/PR with a matrix that includes:
 
 ## Local pre-commit sanitizers
 
-This repo includes a tracked pre-commit hook at [.githooks/pre-commit](.githooks/pre-commit) that runs sanitizer build/tests via [scripts/run-sanitizers.sh](scripts/run-sanitizers.sh).
+This repo includes a tracked pre-commit hook at [.githooks/pre-commit](.githooks/pre-commit) that:
+- runs `clang-format` on staged C/C++ files (and re-stages them)
+- runs sanitizer build/tests via [scripts/run-sanitizers.sh](scripts/run-sanitizers.sh)
 
 Enable it once per clone:
 

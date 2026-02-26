@@ -42,20 +42,21 @@ struct TestSqrt
         return test_utils::expect_true(z.codepoint == expected.codepoint, "Sqrt(4) should return 2");
     }
 
-    static void run()
+    static void run(test_utils::suite &s)
     {
-        using test_utils::run_test;
-        run_test({FormatX::name(), FormatR::name(), "nan"}, test_nan());
-        run_test({FormatX::name(), FormatR::name(), "neginf"}, test_neginf());
-        run_test({FormatX::name(), FormatR::name(), "negative"}, test_negative());
-        run_test({FormatX::name(), FormatR::name(), "posinf"}, test_posinf());
-        run_test({FormatX::name(), FormatR::name(), "positive"}, test_positive());
+        s.with_path(std::string(FormatX::name()) + "/" + FormatR::name(), [&s] {
+            s.run({"nan"}, test_nan());
+            s.run({"neginf"}, test_neginf());
+            s.run({"negative"}, test_negative());
+            s.run({"posinf"}, test_posinf());
+            s.run({"positive"}, test_positive());
+        });
     }
 };
 
 int main()
 {
-    test_utils::init("sqrt");
+    test_utils::suite s{"sqrt"};
 
     using Binary8p3se = p3109::binary<8, 3, p3109::Signed, p3109::Extended>;
     using Binary8p4se = p3109::binary<8, 4, p3109::Signed, p3109::Extended>;
@@ -64,20 +65,20 @@ int main()
     using Binary8p3uf = p3109::binary<8, 3, p3109::Unsigned, p3109::Finite>;
     using Binary8p4uf = p3109::binary<8, 4, p3109::Unsigned, p3109::Finite>;
 
-    TestSqrt<Binary8p3se, Binary8p3se>::run();
-    TestSqrt<Binary8p4se, Binary8p4se>::run();
-    TestSqrt<Binary8p3se, Binary8p4se>::run();
-    TestSqrt<Binary8p4se, Binary8p3se>::run();
+    TestSqrt<Binary8p3se, Binary8p3se>::run(s);
+    TestSqrt<Binary8p4se, Binary8p4se>::run(s);
+    TestSqrt<Binary8p3se, Binary8p4se>::run(s);
+    TestSqrt<Binary8p4se, Binary8p3se>::run(s);
 
-    TestSqrt<Binary8p3sf, Binary8p3sf>::run();
-    TestSqrt<Binary8p4sf, Binary8p4sf>::run();
-    TestSqrt<Binary8p3sf, Binary8p4sf>::run();
-    TestSqrt<Binary8p4sf, Binary8p3sf>::run();
+    TestSqrt<Binary8p3sf, Binary8p3sf>::run(s);
+    TestSqrt<Binary8p4sf, Binary8p4sf>::run(s);
+    TestSqrt<Binary8p3sf, Binary8p4sf>::run(s);
+    TestSqrt<Binary8p4sf, Binary8p3sf>::run(s);
 
-    TestSqrt<Binary8p3uf, Binary8p3uf>::run();
-    TestSqrt<Binary8p4uf, Binary8p4uf>::run();
-    TestSqrt<Binary8p3uf, Binary8p4uf>::run();
-    TestSqrt<Binary8p4uf, Binary8p3uf>::run();
+    TestSqrt<Binary8p3uf, Binary8p3uf>::run(s);
+    TestSqrt<Binary8p4uf, Binary8p4uf>::run(s);
+    TestSqrt<Binary8p3uf, Binary8p4uf>::run(s);
+    TestSqrt<Binary8p4uf, Binary8p3uf>::run(s);
 
-    return test_utils::finalize();
+    return s.finalize();
 }

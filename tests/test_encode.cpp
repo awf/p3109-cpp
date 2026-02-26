@@ -3,8 +3,7 @@
 
 #include "test_utils.h"
 
-template <unsigned K, unsigned P, p3109::Signedness Sigma, p3109::Domain Delta>
-struct TestEncode
+template <unsigned K, unsigned P, p3109::Signedness Sigma, p3109::Domain Delta> struct TestEncode
 {
     using float_type = p3109::binary<K, P, Sigma, Delta>;
 
@@ -20,14 +19,14 @@ struct TestEncode
     static bool test_zero()
     {
         using Format = p3109::binary<K, P, Sigma, Delta>;
-        return test_utils::expect_true(p3109::Encode<Format>(p3109::mpfr_float(0.0)).codepoint == 0, "Encode(0) should be 0");
+        return test_utils::expect_true(
+            p3109::Encode<Format>(p3109::mpfr_float(0.0)).codepoint == 0, "Encode(0) should be 0");
     }
 
     static bool test_subnormal()
     {
         const auto x = pow(p3109::mpfr_float(2.0), subnormal_exp);
-        return test_utils::expect_true(
-            p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(x).codepoint == 1,
+        return test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(x).codepoint == 1,
             "Encode(min positive subnormal quantum) should be 1");
     }
 
@@ -55,15 +54,25 @@ struct TestEncode
         if constexpr (Sigma == p3109::Signed)
         {
             bool ok = true;
-            ok &= test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == two_to_km1, "Signed NaN codepoint should be 2^(K-1)");
-            ok &= test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_km1 - 1), "Signed +inf codepoint should be 2^(K-1)-1");
-            ok &= test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(-p3109::mpfr_inf).codepoint == (two_to_k - 1), "Signed -inf codepoint should be 2^K-1");
+            ok &= test_utils::expect_true(
+                p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == two_to_km1,
+                "Signed NaN codepoint should be 2^(K-1)");
+            ok &= test_utils::expect_true(
+                p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_km1 - 1),
+                "Signed +inf codepoint should be 2^(K-1)-1");
+            ok &= test_utils::expect_true(
+                p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(-p3109::mpfr_inf).codepoint == (two_to_k - 1),
+                "Signed -inf codepoint should be 2^K-1");
             return ok;
         }
 
         bool ok = true;
-        ok &= test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == (two_to_k - 1), "Unsigned NaN codepoint should be 2^K-1");
-        ok &= test_utils::expect_true(p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_k - 2), "Unsigned +inf codepoint should be 2^K-2");
+        ok &= test_utils::expect_true(
+            p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == (two_to_k - 1),
+            "Unsigned NaN codepoint should be 2^K-1");
+        ok &= test_utils::expect_true(
+            p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_k - 2),
+            "Unsigned +inf codepoint should be 2^K-2");
         return ok;
     }
 
@@ -80,26 +89,27 @@ struct TestEncode
         return true;
     }
 
-    static void run()
+    static void run(test_utils::suite &s)
     {
-        using test_utils::run_test;
-        run_test({float_type::name(), "zero"}, test_zero());
-        run_test({float_type::name(), "subnormal"}, test_subnormal());
-        run_test({float_type::name(), "normal"}, test_normal());
-        run_test({float_type::name(), "reflection"}, test_reflection());
-        run_test({float_type::name(), "special_values"}, test_special_values());
-        run_test({float_type::name(), "roundtrip_sample"}, test_roundtrip_sample());
+        s.with_path(float_type::name(), [&s] {
+            s.run({"zero"}, test_zero());
+            s.run({"subnormal"}, test_subnormal());
+            s.run({"normal"}, test_normal());
+            s.run({"reflection"}, test_reflection());
+            s.run({"special_values"}, test_special_values());
+            s.run({"roundtrip_sample"}, test_roundtrip_sample());
+        });
     }
 };
 
 int main()
 {
-    test_utils::init("encode");
+    test_utils::suite s{"encode"};
 
-    TestEncode<8, 3, p3109::Signed, p3109::Extended>::run();
-    TestEncode<8, 4, p3109::Signed, p3109::Extended>::run();
-    TestEncode<8, 3, p3109::Unsigned, p3109::Extended>::run();
-    TestEncode<8, 4, p3109::Unsigned, p3109::Extended>::run();
+    TestEncode<8, 3, p3109::Signed, p3109::Extended>::run(s);
+    TestEncode<8, 4, p3109::Signed, p3109::Extended>::run(s);
+    TestEncode<8, 3, p3109::Unsigned, p3109::Extended>::run(s);
+    TestEncode<8, 4, p3109::Unsigned, p3109::Extended>::run(s);
 
-    return test_utils::finalize();
+    return s.finalize();
 }

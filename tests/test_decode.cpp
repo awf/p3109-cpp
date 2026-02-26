@@ -5,8 +5,7 @@
 
 #include "test_utils.h"
 
-template <unsigned K, unsigned P, p3109::Signedness Sigma, p3109::Domain Delta>
-struct TestDecode
+template <unsigned K, unsigned P, p3109::Signedness Sigma, p3109::Domain Delta> struct TestDecode
 {
     using float_type = p3109::binary<K, P, Sigma, Delta>;
 
@@ -26,18 +25,14 @@ struct TestDecode
 
     static bool test_subnormal()
     {
-        return test_utils::expect_equal(
-            p3109::Decode(float_type{1}),
-            pow(p3109::mpfr_float(2.0), subnormal_exp),
+        return test_utils::expect_equal(p3109::Decode(float_type{1}), pow(p3109::mpfr_float(2.0), subnormal_exp),
             "Decode(1) should match subnormal formula");
     }
 
     static bool test_normal()
     {
-        return test_utils::expect_equal(
-            p3109::Decode(float_type{trailing_modulus}),
-            pow(p3109::mpfr_float(2.0), normal_exp),
-            "Decode(2^(P-1)) should match normal formula");
+        return test_utils::expect_equal(p3109::Decode(float_type{trailing_modulus}),
+            pow(p3109::mpfr_float(2.0), normal_exp), "Decode(2^(P-1)) should match normal formula");
     }
 
     static bool test_reflection()
@@ -65,9 +60,11 @@ struct TestDecode
             const auto nan_value = p3109::Decode(float_type{nan_codepoint});
             const auto minus_inf = p3109::Decode(float_type{minus_inf_codepoint});
 
-            ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Signed +inf codepoint should decode to +inf");
+            ok &= test_utils::expect_true(
+                boost::math::isinf(plus_inf) && plus_inf > 0, "Signed +inf codepoint should decode to +inf");
             ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Signed NaN codepoint should decode to NaN");
-            ok &= test_utils::expect_true(boost::math::isinf(minus_inf) && minus_inf < 0, "Signed -inf codepoint should decode to -inf");
+            ok &= test_utils::expect_true(
+                boost::math::isinf(minus_inf) && minus_inf < 0, "Signed -inf codepoint should decode to -inf");
             return ok;
         }
 
@@ -79,35 +76,37 @@ struct TestDecode
         const auto plus_inf = p3109::Decode(float_type{plus_inf_codepoint});
         const auto nan_value = p3109::Decode(float_type{nan_codepoint});
 
-        ok &= test_utils::expect_true(boost::math::isinf(plus_inf) && plus_inf > 0, "Unsigned +inf codepoint should decode to +inf");
+        ok &= test_utils::expect_true(
+            boost::math::isinf(plus_inf) && plus_inf > 0, "Unsigned +inf codepoint should decode to +inf");
         ok &= test_utils::expect_true(boost::math::isnan(nan_value), "Unsigned NaN codepoint should decode to NaN");
         return ok;
     }
 
-    static void run()
+    static void run(test_utils::suite &s)
     {
-        using test_utils::run_test;
-        run_test({float_type::name(), "zero"}, test_zero());
-        run_test({float_type::name(), "subnormal"}, test_subnormal());
-        run_test({float_type::name(), "normal"}, test_normal());
-        run_test({float_type::name(), "reflection"}, test_reflection());
-        run_test({float_type::name(), "special_values"}, test_special_values());
+        s.with_path(float_type::name(), [&s] {
+            s.run({"zero"}, test_zero());
+            s.run({"subnormal"}, test_subnormal());
+            s.run({"normal"}, test_normal());
+            s.run({"reflection"}, test_reflection());
+            s.run({"special_values"}, test_special_values());
+        });
     }
 };
 
 int main()
 {
-    test_utils::init("decode");
+    test_utils::suite s{"decode"};
 
     using Binary8p3se = p3109::binary<8, 3, p3109::Signed, p3109::Extended>;
     using Binary8p4se = p3109::binary<8, 4, p3109::Signed, p3109::Extended>;
     using Binary8p3ue = p3109::binary<8, 3, p3109::Unsigned, p3109::Extended>;
     using Binary8p4ue = p3109::binary<8, 4, p3109::Unsigned, p3109::Extended>;
 
-    TestDecode<8, 3, p3109::Signed, p3109::Extended>::run();
-    TestDecode<8, 4, p3109::Signed, p3109::Extended>::run();
-    TestDecode<8, 3, p3109::Unsigned, p3109::Extended>::run();
-    TestDecode<8, 4, p3109::Unsigned, p3109::Extended>::run();
+    TestDecode<8, 3, p3109::Signed, p3109::Extended>::run(s);
+    TestDecode<8, 4, p3109::Signed, p3109::Extended>::run(s);
+    TestDecode<8, 3, p3109::Unsigned, p3109::Extended>::run(s);
+    TestDecode<8, 4, p3109::Unsigned, p3109::Extended>::run(s);
 
-    return test_utils::finalize();
+    return s.finalize();
 }

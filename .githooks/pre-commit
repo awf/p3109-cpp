@@ -3,5 +3,24 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
+if ! command -v clang-format >/dev/null 2>&1; then
+	echo "[pre-commit] ERROR: clang-format not found in PATH"
+	echo "[pre-commit] Install clang-format to continue."
+	exit 1
+fi
+
+staged_cpp_files="$({ git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$'; } || true)"
+
+if [[ -n "${staged_cpp_files}" ]]; then
+	echo "[pre-commit] Running clang-format on staged C/C++ files..."
+	while IFS= read -r file; do
+		[[ -z "${file}" ]] && continue
+		clang-format -i "${ROOT_DIR}/${file}"
+		git add -- "${file}"
+	done <<< "${staged_cpp_files}"
+else
+	echo "[pre-commit] No staged C/C++ files to format."
+fi
+
 echo "[pre-commit] Running sanitizer checks..."
 "${ROOT_DIR}/scripts/run-sanitizers.sh"

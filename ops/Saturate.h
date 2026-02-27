@@ -34,7 +34,7 @@ namespace p3109 {
     {
       if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardNegative>)
         return false;
-      if constexpr (std::is_base_of_v<RoundingMode, RoundingMode>)
+      if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode>)
         return true;
       return true;
     }
@@ -44,7 +44,7 @@ namespace p3109 {
     {
       if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardPositive>)
         return false;
-      if constexpr (std::is_base_of_v<RoundingMode, RoundingMode>)
+      if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode>)
         return true;
       return true;
     }
@@ -53,7 +53,7 @@ namespace p3109 {
   template <Signedness Sigma, Domain Delta, typename RoundingMode>
   mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
     constexpr bool is_signed = (Sigma == Signedness::Signed);
 
     ensure_mpfr_precision();

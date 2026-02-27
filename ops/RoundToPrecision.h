@@ -59,7 +59,7 @@ namespace p3109 {
   template <unsigned P, int Bias, typename RoundingMode>
   mpfr_float RoundToPrecision(mpfr_float X, RoundingMode mode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
     ensure_mpfr_precision();
 
@@ -113,21 +113,21 @@ namespace p3109 {
     {
       round_away = (fraction > 0) && code_is_even;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+    else if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
                        std::is_same_v<RoundingMode, StochasticA<RoundingMode::bits>>)
     {
       const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits));
       const mpfr_float lhs = floor(fraction * pow2n) + mode.random;
       round_away = lhs >= pow2n;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+    else if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
                        std::is_same_v<RoundingMode, StochasticB<RoundingMode::bits>>)
     {
       const mpfr_float pow2n1 = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits + 1));
       const mpfr_float lhs = floor(fraction * pow2n1) + (2 * mode.random + 1);
       round_away = lhs >= pow2n1;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+    else if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
                        std::is_same_v<RoundingMode, StochasticC<RoundingMode::bits>>)
     {
       const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits));
@@ -136,7 +136,7 @@ namespace p3109 {
     }
     else
     {
-      static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "Unsupported rounding mode policy type");
+      static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "Unsupported rounding mode policy type");
     }
 
     const long long I = floor_s + (round_away ? 1 : 0);

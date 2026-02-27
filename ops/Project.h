@@ -26,7 +26,7 @@ namespace p3109 {
   template <typename Format, typename RoundingMode = NearestTiesToEven>
   Format Project(mpfr_float X, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
     if constexpr (!Format::is_extended)
     {

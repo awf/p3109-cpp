@@ -2,5 +2,9 @@
     "cmake.configureOnOpen": true,
     "cmake.ctestArgs": [
         "--output-on-failure"
-    ]
+    ],
+    "chat.tools.terminal.autoApprove": {
+        "git add": true,
+        "git commit": true
+    }
 }

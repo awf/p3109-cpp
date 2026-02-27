@@ -60,7 +60,7 @@ namespace p3109 {
     if (boost::math::isnan(X))
       return X;
 
-    const mpfr_float minFinite = (Sigma == Signed) ? -maxFinite : mpfr_float(0.0);
+    const mpfr_float minFinite = (Sigma == Signedness::Signed) ? -maxFinite : mpfr_float(0.0);
 
     const auto clamp_finite = [&]() -> mpfr_float {
       if (X > maxFinite)
@@ -72,26 +72,26 @@ namespace p3109 {
 
     switch (sat)
     {
-    case SatFinite:
+    case SaturationMode::SatFinite:
       if (boost::math::isinf(X))
         return (X > 0) ? maxFinite : minFinite;
       return clamp_finite();
 
-    case SatPropagate:
+    case SaturationMode::SatPropagate:
       if (boost::math::isinf(X))
       {
-        if constexpr (Sigma == Unsigned)
+        if constexpr (Sigma == Signedness::Unsigned)
           return (X > 0) ? mpfr_inf : mpfr_float(0.0);
         return X;
       }
       return clamp_finite();
 
-    case OvfInf:
+    case SaturationMode::OvfInf:
       if (boost::math::isinf(X))
       {
         if (X > 0)
           return mpfr_inf;
-        if constexpr (Sigma == Signed)
+        if constexpr (Sigma == Signedness::Signed)
           return -mpfr_inf;
         return mpfr_float(0.0);
       }
@@ -101,7 +101,7 @@ namespace p3109 {
 
       if (X < minFinite)
       {
-        if constexpr (Sigma == Unsigned)
+        if constexpr (Sigma == Signedness::Unsigned)
           return mpfr_float(0.0);
         return detail::ovf_to_inf_negative(roundMode) ? -mpfr_inf : minFinite;
       }

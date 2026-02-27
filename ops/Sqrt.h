@@ -18,7 +18,8 @@ namespace p3109 {
   // - Result:
   //     r         = P3109 value, format FormatR
   //
-  template <typename FormatR, typename FormatX, typename ProjSpec = ProjectionSpec<NearestTiesToEven, SatFinite>>
+  template <typename FormatR, typename FormatX,
+    typename ProjSpec = ProjectionSpec<NearestTiesToEven, SaturationMode::SatFinite>>
   FormatR Sqrt(FormatX x, ProjSpec projSpec = ProjSpec{})
   {
     // Canonical Sqrt cases (from wSqrt.tex):

@@ -33,7 +33,7 @@ namespace p3109 {
 
     // NaN codepoints
     std::uint64_t codepoint = x.codepoint;
-    if (Sigma == Signed)
+    if (Sigma == Signedness::Signed)
     {
       if (codepoint == two_to_km1)
         return mpfr_nan;
@@ -45,9 +45,9 @@ namespace p3109 {
     }
 
     // Infinity codepoints (Extended domain only)
-    if (Delta == Extended)
+    if (Delta == Domain::Extended)
     {
-      if (Sigma == Signed)
+      if (Sigma == Signedness::Signed)
       {
         if (codepoint == (two_to_km1 - 1))
           return mpfr_inf;
@@ -63,7 +63,7 @@ namespace p3109 {
 
     // Signed reflection rule:
     // DecodeAux(Signed, domain, x) = -DecodeAux(Signed, domain, x - 2^(K-1)) for 2^(K-1) < x < 2^K
-    if constexpr (Sigma == Signed)
+    if constexpr (Sigma == Signedness::Signed)
     {
       if (codepoint > two_to_km1 && codepoint < two_to_k)
       {

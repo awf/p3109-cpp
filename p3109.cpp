@@ -8,7 +8,7 @@ int main()
 {
   p3109::ensure_mpfr_precision();
 
-  using Binary8p3 = p3109::binary<8, 3, p3109::Signed, p3109::Extended>;
+  using Binary8p3 = p3109::binary<8, 3, p3109::Signedness::Signed, p3109::Domain::Extended>;
 
   for (std::uint64_t x : {0, 1, 42, 64, 126, 127, 128, 129, 253, 254, 255})
   {

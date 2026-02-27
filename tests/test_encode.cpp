@@ -38,7 +38,7 @@ struct TestEncode {
 
   static bool test_reflection()
   {
-    if constexpr (Sigma == p3109::Unsigned)
+    if constexpr (Sigma == p3109::Signedness::Unsigned)
       return true;
 
     const auto x = pow(p3109::mpfr_float(2.0), subnormal_exp);
@@ -49,7 +49,7 @@ struct TestEncode {
 
   static bool test_special_values()
   {
-    if constexpr (Sigma == p3109::Signed)
+    if constexpr (Sigma == p3109::Signedness::Signed)
     {
       bool ok = true;
       ok &= test_utils::expect_true(
@@ -105,10 +105,10 @@ int main()
 {
   test_utils::suite s{"encode"};
 
-  TestEncode<8, 3, p3109::Signed, p3109::Extended>::run(s);
-  TestEncode<8, 4, p3109::Signed, p3109::Extended>::run(s);
-  TestEncode<8, 3, p3109::Unsigned, p3109::Extended>::run(s);
-  TestEncode<8, 4, p3109::Unsigned, p3109::Extended>::run(s);
+  TestEncode<8, 3, p3109::Signedness::Signed, p3109::Domain::Extended>::run(s);
+  TestEncode<8, 4, p3109::Signedness::Signed, p3109::Domain::Extended>::run(s);
+  TestEncode<8, 3, p3109::Signedness::Unsigned, p3109::Domain::Extended>::run(s);
+  TestEncode<8, 4, p3109::Signedness::Unsigned, p3109::Domain::Extended>::run(s);
 
   return s.finalize();
 }

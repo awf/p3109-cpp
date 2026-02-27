@@ -12,9 +12,9 @@ namespace p3109 {
 
 namespace p3109 {
 
-  enum Signedness { Signed, Unsigned };
+  enum class Signedness { Signed, Unsigned };
 
-  enum Domain { Finite, Extended };
+  enum class Domain { Finite, Extended };
 
   struct RoundingMode {};
   struct TowardZero : RoundingMode {};
@@ -42,7 +42,7 @@ namespace p3109 {
   template <unsigned N>
   using StochasticC = Stochastic<StochasticVariant::C, N>;
 
-  enum SaturationMode {
+  enum class SaturationMode {
     SatFinite,
     SatPropagate,
     OvfInf,
@@ -56,10 +56,11 @@ namespace p3109 {
 
   template <unsigned K, unsigned P, Signedness Sigma, Domain Delta>
   struct binary {
+    static constexpr bool is_signed = (Sigma == Signedness::Signed);
+
     static_assert(3 <= K, "K must be at least 3");
     static_assert(1 <= P, "P must be at least 1");
-    static_assert(
-      P <= (Sigma == Signed ? (K - 1) : K), "P must be < K for signed formats, and <= K for unsigned formats");
+    static_assert(P <= (is_signed ? (K - 1) : K), "P must be < K for signed formats, and <= K for unsigned formats");
     static_assert(K < 63, "K must be < 63 for this uint64_t reference implementation");
 
     std::uint64_t codepoint;
@@ -68,21 +69,22 @@ namespace p3109 {
     static constexpr unsigned precision = P;
     static constexpr Signedness signedness = Sigma;
     static constexpr Domain domain = Delta;
-    static const unsigned int exponent_bias = (Sigma == Signed) ? pow2_u64(K - P - 1) : pow2_u64(K - P);
 
-    static constexpr std::uint64_t nan_codepoint = (Sigma == Signed) ? pow2_u64(K - 1) : pow2_u64(K) - 1;
+    static const unsigned int exponent_bias = is_signed ? pow2_u64(K - P - 1) : pow2_u64(K - P);
+
+    static constexpr std::uint64_t nan_codepoint = is_signed ? pow2_u64(K - 1) : pow2_u64(K) - 1;
     static inline const binary nan = binary{nan_codepoint};
 
-    static constexpr std::uint64_t posinf_codepoint = (Sigma == Signed) ? (pow2_u64(K - 1) - 1) : (pow2_u64(K) - 2);
+    static constexpr std::uint64_t posinf_codepoint = is_signed ? (pow2_u64(K - 1) - 1) : (pow2_u64(K) - 2);
     static inline const binary inf = binary{posinf_codepoint};
 
-    static constexpr std::uint64_t neginf_codepoint = (Sigma == Signed) ? (pow2_u64(K) - 1) : 0;
+    static constexpr std::uint64_t neginf_codepoint = is_signed ? (pow2_u64(K) - 1) : 0;
     static inline const binary ninf = binary{neginf_codepoint};
 
     static constexpr bool isnan(const binary &x) { return x.codepoint == nan_codepoint; }
     static constexpr bool isinf(const binary &x)
     {
-      if constexpr (Sigma == Signed)
+      if constexpr (is_signed)
         return x.codepoint == posinf_codepoint || x.codepoint == neginf_codepoint;
       else
         return x.codepoint == posinf_codepoint;
@@ -90,7 +92,7 @@ namespace p3109 {
     static constexpr bool isposinf(const binary &x) { return x.codepoint == posinf_codepoint; }
     static constexpr bool isneginf(const binary &x)
     {
-      if constexpr (Sigma == Signed)
+      if constexpr (is_signed)
         return x.codepoint == neginf_codepoint;
       else
         return false;
@@ -107,8 +109,8 @@ namespace p3109 {
       out += std::to_string(K);
       out += "p";
       out += std::to_string(P);
-      out += (Sigma == Signed ? "s" : "u");
-      out += (Delta == Finite ? "f" : "x");
+      out += (is_signed ? "s" : "u");
+      out += (Delta == Domain::Finite ? "f" : "x");
       return out;
     }
   };

@@ -36,20 +36,20 @@ namespace p3109 {
     constexpr std::uint64_t two_to_km1 = pow2_u64(K - 1);
 
     if (boost::math::isnan(X))
-      return (Sigma == Signed) ? two_to_km1 : (two_to_k - 1);
+      return (Sigma == Signedness::Signed) ? two_to_km1 : (two_to_k - 1);
 
     if (boost::math::isinf(X))
     {
       if (X > 0)
-        return (Sigma == Signed) ? (two_to_km1 - 1) : (two_to_k - 2);
+        return (Sigma == Signedness::Signed) ? (two_to_km1 - 1) : (two_to_k - 2);
 
-      if constexpr (Sigma == Signed)
+      if constexpr (Sigma == Signedness::Signed)
         return EncodeAux<Format>(-X) + two_to_km1;
 
       return two_to_k - 1;
     }
 
-    if constexpr (Sigma == Signed)
+    if constexpr (Sigma == Signedness::Signed)
     {
       if (X < 0)
         return EncodeAux<Format>(-X) + two_to_km1;

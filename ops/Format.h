@@ -16,16 +16,16 @@ namespace p3109 {
     constexpr std::uint64_t two_to_km1 = pow2_u64(K - 1);
 
     std::uint64_t codepoint = 0;
-    if constexpr (Sigma == Signed)
+    if constexpr (Sigma == Signedness::Signed)
     {
-      if constexpr (Delta == Extended)
+      if constexpr (Delta == Domain::Extended)
         codepoint = two_to_km1 - 2;
       else
         codepoint = two_to_km1 - 1;
     }
     else
     {
-      if constexpr (Delta == Extended)
+      if constexpr (Delta == Domain::Extended)
         codepoint = two_to_k - 3;
       else
         codepoint = two_to_k - 2;

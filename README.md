@@ -62,7 +62,7 @@ And using stochastic rounding:
    p3109::Sqrt<FormatResult>(x, ProjectionSpec<StochasticB<4>,SatFinite>>{{7}})
 ```
 
-## Template parameter order
+## Template parameter order
 
 Note that the result format parameter appears first in the parameter list, while in the P3109 interim report, it is listed last.
 This is to enable template parameter type deduction on the arguments.

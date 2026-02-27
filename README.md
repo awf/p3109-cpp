@@ -8,7 +8,7 @@ P3109 defines a family of floating point formats and operations parameterized ov
 
 This package defines a datatype
 ```c++
-  binary<uint K, uint P, Signedness sigma, Domain delta>
+  binary<unsigned K, unsigned P, Signedness sigma, Domain delta>
 ```
 with
 ```c++
@@ -54,15 +54,16 @@ where the `Stochastic` variants carry a payload of random bits.
 
 Hence a call to `Sqrt` with rounding toward zero and saturation to finite values might look like
 ```c++
-   p3109::Sqrt<FormatResult>(x,    ProjectionSpec<TowardZero,SatFinite>>{})
+   p3109::Sqrt<FormatResult>(x, ProjectionSpec<TowardZero,SatFinite>>{})
 ```
 
 And using stochastic rounding:
 ```c++
-   p3109::Sqrt<FormatResult>(x,    ProjectionSpec<StochasticB<4>,SatFinite>>{{7}})
+   p3109::Sqrt<FormatResult>(x, ProjectionSpec<StochasticB<4>,SatFinite>>{{7}})
 ```
 
 ## Template parameter order
+
 Note that the result format parameter appears first in the parameter list, while in the P3109 interim report, it is listed last.
 This is to enable template parameter type deduction on the arguments.
 

@@ -76,7 +76,8 @@ struct TestEncode {
 
   static bool test_roundtrip_sample()
   {
-    for (std::uint64_t x : {0ull, 1ull, trailing_modulus, two_to_km1, two_to_k - 1})
+    for (std::uint64_t x :
+      {std::uint64_t{0}, std::uint64_t{1}, trailing_modulus, two_to_km1, two_to_k - std::uint64_t{1}})
     {
       using Format = p3109::binary<K, P, Sigma, Delta>;
       const auto y = p3109::Decode<Format>(float_type{x});

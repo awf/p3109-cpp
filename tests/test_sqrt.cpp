@@ -1,5 +1,7 @@
 #include <string>
 
+#include <tuple>
+
 #include "test_utils.h"
 
 template <typename FormatX, typename FormatR,
@@ -54,6 +56,18 @@ struct TestSqrt {
   }
 };
 
+template <typename FormatX, typename... FormatRs>
+void run_sqrt_for_rhs(test_utils::suite &s)
+{
+  (TestSqrt<FormatX, FormatRs>::run(s), ...);
+}
+
+template <typename... FormatXs, typename... FormatRs>
+void run_sqrt_cross_product(test_utils::suite &s, std::tuple<FormatXs...>, std::tuple<FormatRs...>)
+{
+  (run_sqrt_for_rhs<FormatXs, FormatRs...>(s), ...);
+}
+
 int main()
 {
   test_utils::suite s{"sqrt"};
@@ -65,20 +79,8 @@ int main()
   using Binary8p3uf = p3109::binary<8, 3, p3109::Unsigned, p3109::Finite>;
   using Binary8p4uf = p3109::binary<8, 4, p3109::Unsigned, p3109::Finite>;
 
-  TestSqrt<Binary8p3se, Binary8p3se>::run(s);
-  TestSqrt<Binary8p4se, Binary8p4se>::run(s);
-  TestSqrt<Binary8p3se, Binary8p4se>::run(s);
-  TestSqrt<Binary8p4se, Binary8p3se>::run(s);
-
-  TestSqrt<Binary8p3sf, Binary8p3sf>::run(s);
-  TestSqrt<Binary8p4sf, Binary8p4sf>::run(s);
-  TestSqrt<Binary8p3sf, Binary8p4sf>::run(s);
-  TestSqrt<Binary8p4sf, Binary8p3sf>::run(s);
-
-  TestSqrt<Binary8p3uf, Binary8p3uf>::run(s);
-  TestSqrt<Binary8p4uf, Binary8p4uf>::run(s);
-  TestSqrt<Binary8p3uf, Binary8p4uf>::run(s);
-  TestSqrt<Binary8p4uf, Binary8p3uf>::run(s);
+  using AllFormats = std::tuple<Binary8p3se, Binary8p4se, Binary8p3sf, Binary8p4sf, Binary8p3uf, Binary8p4uf>;
+  run_sqrt_cross_product(s, AllFormats{}, AllFormats{});
 
   using RTZF = p3109::ProjectionSpec<p3109::TowardZero, p3109::SatFinite>;
   TestSqrt<Binary8p3se, Binary8p3se, RTZF>::run(s);

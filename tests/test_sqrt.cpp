@@ -2,11 +2,12 @@
 
 #include "test_utils.h"
 
-template <typename FormatX, typename FormatR, typename ProjSpec = p3109::ProjectionSpec<p3109::NearestTiesToEven>>
+template <typename FormatX, typename FormatR,
+  typename ProjSpec = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SatFinite>>
 struct TestSqrt {
   static bool test_nan()
   {
-    const auto z = p3109::Sqrt<FormatX, FormatR, ProjSpec>(FormatX::nan);
+    const auto z = p3109::Sqrt<FormatR>(FormatX::nan, ProjSpec{});
     return test_utils::expect_true(z.isnan(), "Sqrt(NaN) should return NaN");
   }
 
@@ -14,7 +15,7 @@ struct TestSqrt {
   {
     if constexpr (FormatX::signedness == p3109::Unsigned)
       return true;
-    const auto z = p3109::Sqrt<FormatX, FormatR, ProjSpec>(FormatX::ninf);
+    const auto z = p3109::Sqrt<FormatR>(FormatX::ninf, ProjSpec{});
     return test_utils::expect_true(z.isnan(), "Sqrt(-inf) should return NaN");
   }
 
@@ -23,20 +24,20 @@ struct TestSqrt {
     if constexpr (FormatX::signedness == p3109::Unsigned)
       return true;
     const auto x = p3109::Encode<FormatX>(p3109::mpfr_float(-1.0));
-    const auto z = p3109::Sqrt<FormatX, FormatR, ProjSpec>(x);
+    const auto z = p3109::Sqrt<FormatR>(x, ProjSpec{});
     return test_utils::expect_true(z.isnan(), "Sqrt(X) with X<0 should return NaN");
   }
 
   static bool test_posinf()
   {
-    const auto z = p3109::Sqrt<FormatX, FormatR, ProjSpec>(FormatX::inf);
+    const auto z = p3109::Sqrt<FormatR>(FormatX::inf, ProjSpec{});
     return test_utils::expect_true(z.isposinf(), "Sqrt(+inf) should return +inf");
   }
 
   static bool test_positive()
   {
     const auto x = p3109::Encode<FormatX>(p3109::mpfr_float(4.0));
-    const auto z = p3109::Sqrt<FormatX, FormatR, ProjSpec>(x);
+    const auto z = p3109::Sqrt<FormatR>(x, ProjSpec{});
     const auto expected = p3109::Encode<FormatR>(p3109::mpfr_float(2.0));
     return test_utils::expect_true(z.codepoint == expected.codepoint, "Sqrt(4) should return 2");
   }
@@ -78,6 +79,19 @@ int main()
   TestSqrt<Binary8p4uf, Binary8p4uf>::run(s);
   TestSqrt<Binary8p3uf, Binary8p4uf>::run(s);
   TestSqrt<Binary8p4uf, Binary8p3uf>::run(s);
+
+  using RTZF = p3109::ProjectionSpec<p3109::TowardZero, p3109::SatFinite>;
+  TestSqrt<Binary8p3se, Binary8p3se, RTZF>::run(s);
+
+  // Single-format stochastic test
+  s.with_path("stochastic", [&s] {
+    using SR = p3109::ProjectionSpec<p3109::StochasticB<8>, p3109::SatFinite>;
+    const auto x = p3109::Encode<Binary8p4se>(p3109::mpfr_float(4.0));
+    unsigned random_bits = 7;
+    const auto z = p3109::Sqrt<Binary8p4se>(x, SR{{random_bits}});
+    const auto expected = p3109::Encode<Binary8p4se>(p3109::mpfr_float(2.0));
+    return test_utils::expect_true(z.codepoint == expected.codepoint, "Sqrt(4) should return 2");
+  });
 
   return s.finalize();
 }

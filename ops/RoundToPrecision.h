@@ -56,10 +56,10 @@ namespace p3109 {
   // Notes:
   // - Subnormal handling follows the spec via max(floor(log2(|X|)), 1-Bias).
   // - StochasticA/B/C are implemented exactly from the listed inequalities.
-  template <unsigned P, int Bias, typename RM>
-  mpfr_float RoundToPrecision(mpfr_float X, RM mode = RM{})
+  template <unsigned P, int Bias, typename RoundingMode>
+  mpfr_float RoundToPrecision(mpfr_float X, RoundingMode mode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RM>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
     ensure_mpfr_precision();
 
@@ -85,58 +85,58 @@ namespace p3109 {
     const bool code_is_even = (P > 1) ? detail::is_even_i64(floor_s) : (floor_s == 0 || detail::is_even_i64(E + Bias));
 
     bool round_away = false;
-    if constexpr (std::is_same_v<RM, TowardZero>)
+    if constexpr (std::is_same_v<RoundingMode, TowardZero>)
     {
       round_away = false;
     }
-    else if constexpr (std::is_same_v<RM, TowardMaxMagnitude>)
+    else if constexpr (std::is_same_v<RoundingMode, TowardMaxMagnitude>)
     {
       round_away = fraction > 0;
     }
-    else if constexpr (std::is_same_v<RM, TowardPositive>)
+    else if constexpr (std::is_same_v<RoundingMode, TowardPositive>)
     {
       round_away = (fraction > 0) && (X > 0);
     }
-    else if constexpr (std::is_same_v<RM, TowardNegative>)
+    else if constexpr (std::is_same_v<RoundingMode, TowardNegative>)
     {
       round_away = (fraction > 0) && (X < 0);
     }
-    else if constexpr (std::is_same_v<RM, NearestTiesToAway>)
+    else if constexpr (std::is_same_v<RoundingMode, NearestTiesToAway>)
     {
       round_away = fraction >= mpfr_half;
     }
-    else if constexpr (std::is_same_v<RM, NearestTiesToEven>)
+    else if constexpr (std::is_same_v<RoundingMode, NearestTiesToEven>)
     {
       round_away = (fraction > mpfr_half) || ((fraction == mpfr_half) && !code_is_even);
     }
-    else if constexpr (std::is_same_v<RM, ToOdd>)
+    else if constexpr (std::is_same_v<RoundingMode, ToOdd>)
     {
       round_away = (fraction > 0) && code_is_even;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RM> && requires { RM::bits; } &&
-                       std::is_same_v<RM, StochasticA<RM::bits>>)
+    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+                       std::is_same_v<RoundingMode, StochasticA<RoundingMode::bits>>)
     {
-      const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RM::bits));
+      const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits));
       const mpfr_float lhs = floor(fraction * pow2n) + mode.random;
       round_away = lhs >= pow2n;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RM> && requires { RM::bits; } &&
-                       std::is_same_v<RM, StochasticB<RM::bits>>)
+    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+                       std::is_same_v<RoundingMode, StochasticB<RoundingMode::bits>>)
     {
-      const mpfr_float pow2n1 = pow(mpfr_float(2.0), static_cast<long long>(RM::bits + 1));
+      const mpfr_float pow2n1 = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits + 1));
       const mpfr_float lhs = floor(fraction * pow2n1) + (2 * mode.random + 1);
       round_away = lhs >= pow2n1;
     }
-    else if constexpr (std::is_base_of_v<RoundingMode, RM> && requires { RM::bits; } &&
-                       std::is_same_v<RM, StochasticC<RM::bits>>)
+    else if constexpr (std::is_base_of_v<RoundingMode, RoundingMode> && requires { RoundingMode::bits; } &&
+                       std::is_same_v<RoundingMode, StochasticC<RoundingMode::bits>>)
     {
-      const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RM::bits));
+      const mpfr_float pow2n = pow(mpfr_float(2.0), static_cast<long long>(RoundingMode::bits));
       const long long rn = detail::rnite_ties_to_even(fraction * pow2n);
       round_away = (mpfr_float(rn) + mode.random) >= pow2n;
     }
     else
     {
-      static_assert(std::is_base_of_v<RoundingMode, RM>, "Unsupported rounding mode policy type");
+      static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "Unsupported rounding mode policy type");
     }
 
     const long long I = floor_s + (round_away ? 1 : 0);

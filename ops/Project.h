@@ -12,25 +12,25 @@ namespace p3109 {
   // Structured definition alignment (main.tex §Project):
   // - Parameters:
   //     Format   = target format type (e.g., binary<K, P, Sigma, Delta>)
-  //     projspec = projection specification (sat, round) or ProjectionSpec<RM>
+  //     projspec = projection specification (round, sat)
   // - Operand:
   //     X = closed extended real value
   // - Result:
   //     x = P3109 value in format Format
   //
   // Behavior mapping used below:
-  //   R = RoundToPrecision<Format::precision, Format::exponent_bias, RM>(X)
-  //   S = Saturate<Format::signedness, Format::domain, RM>(R, MaxFinite(Format), sat, round)
-  //   x = Encode<Format>(S)
+  //   R = RoundToPrecision(X)
+  //   S = Saturate(R, MaxFinite(Format), sat, round)
+  //   x = Encode(S)
 
-  template <typename Format, typename RM = NearestTiesToEven>
-  Format Project(mpfr_float X, SaturationMode sat, RM roundMode = RM{})
+  template <typename Format, typename RoundingMode = NearestTiesToEven>
+  Format Project(mpfr_float X, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RM>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
     if constexpr (Format::domain == Finite)
     {
-      if (sat != SaturationMode::SatFinite)
+      if (sat != SatFinite)
         throw std::invalid_argument("Finite-domain Project requires SatFinite");
     }
 
@@ -39,14 +39,15 @@ namespace p3109 {
 
     constexpr int bias = Format::exponent_bias;
     const mpfr_float max_finite = Decode(MaxFiniteOf<Format>());
-    const mpfr_float rounded = RoundToPrecision<Format::precision, bias, RM>(X, roundMode);
-    const mpfr_float saturated = Saturate<Format::signedness, Format::domain, RM>(rounded, max_finite, sat, roundMode);
+    const mpfr_float rounded = RoundToPrecision<Format::precision, bias, RoundingMode>(X, roundMode);
+    const mpfr_float saturated =
+      Saturate<Format::signedness, Format::domain, RoundingMode>(rounded, max_finite, sat, roundMode);
     return Encode<Format>(saturated);
   }
 
-  template <typename Format, typename RM>
-  Format Project(mpfr_float X, ProjectionSpec<RM> projectionSpec)
+  template <typename Format, typename RoundingMode, SaturationMode Sat>
+  Format Project(mpfr_float X, ProjectionSpec<RoundingMode, Sat> projectionSpec)
   {
-    return Project<Format, RM>(X, projectionSpec.saturate, projectionSpec.round);
+    return Project<Format, RoundingMode>(X, Sat, projectionSpec.round);
   }
 } // namespace p3109

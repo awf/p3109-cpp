@@ -29,31 +29,31 @@ namespace p3109 {
   //
   // See main.tex for full details and edge case handling.
   namespace detail {
-    template <typename RM>
-    inline bool ovf_to_inf_positive(RM)
+    template <typename RoundingMode>
+    inline bool ovf_to_inf_positive(RoundingMode)
     {
-      if constexpr (std::is_same_v<RM, TowardZero> || std::is_same_v<RM, TowardNegative>)
+      if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardNegative>)
         return false;
-      if constexpr (std::is_base_of_v<RoundingMode, RM>)
+      if constexpr (std::is_base_of_v<RoundingMode, RoundingMode>)
         return true;
       return true;
     }
 
-    template <typename RM>
-    inline bool ovf_to_inf_negative(RM)
+    template <typename RoundingMode>
+    inline bool ovf_to_inf_negative(RoundingMode)
     {
-      if constexpr (std::is_same_v<RM, TowardZero> || std::is_same_v<RM, TowardPositive>)
+      if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardPositive>)
         return false;
-      if constexpr (std::is_base_of_v<RoundingMode, RM>)
+      if constexpr (std::is_base_of_v<RoundingMode, RoundingMode>)
         return true;
       return true;
     }
   } // namespace detail
 
-  template <Signedness Sigma, Domain Delta, typename RM>
-  mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RM roundMode = RM{})
+  template <Signedness Sigma, Domain Delta, typename RoundingMode>
+  mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
-    static_assert(std::is_base_of_v<RoundingMode, RM>, "RM must derive from RoundingMode");
+    static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
     ensure_mpfr_precision();
 
@@ -72,12 +72,12 @@ namespace p3109 {
 
     switch (sat)
     {
-    case SaturationMode::SatFinite:
+    case SatFinite:
       if (boost::math::isinf(X))
         return (X > 0) ? maxFinite : minFinite;
       return clamp_finite();
 
-    case SaturationMode::SatPropagate:
+    case SatPropagate:
       if (boost::math::isinf(X))
       {
         if constexpr (Sigma == Unsigned)
@@ -86,7 +86,7 @@ namespace p3109 {
       }
       return clamp_finite();
 
-    case SaturationMode::OvfInf:
+    case OvfInf:
       if (boost::math::isinf(X))
       {
         if (X > 0)

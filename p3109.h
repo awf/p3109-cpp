@@ -32,7 +32,7 @@ namespace p3109 {
     static constexpr StochasticVariant variant = Variant;
     static constexpr unsigned bits = N;
     std::uint64_t random;
-    explicit constexpr Stochastic(std::uint64_t r = 0) : random(r) {}
+    constexpr Stochastic(std::uint64_t r = 0) : random(r) {}
   };
 
   template <unsigned N>
@@ -42,16 +42,16 @@ namespace p3109 {
   template <unsigned N>
   using StochasticC = Stochastic<StochasticVariant::C, N>;
 
-  enum class SaturationMode {
+  enum SaturationMode {
     SatFinite,
     SatPropagate,
     OvfInf,
   };
 
-  template <typename RM>
+  template <typename RoundingMode, SaturationMode Saturate>
   struct ProjectionSpec {
-    RM round;
-    SaturationMode saturate;
+    RoundingMode round;
+    static constexpr SaturationMode saturate = Saturate;
   };
 
   template <unsigned K, unsigned P, Signedness Sigma, Domain Delta>

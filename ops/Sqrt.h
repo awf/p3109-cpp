@@ -5,12 +5,12 @@
 #include "p3109.h"
 
 namespace p3109 {
-  // Sqrt<FormatX, FormatR, ProjSpec>(x, projSpec) -> r
+  // Sqrt<FormatR>(x, projSpec) -> r
   //
   // Structured definition (main.tex §Sqrt):
   // - Parameters:
-  //     FormatX    = format of operand x (e.g., binary<K, P, Sigma, Delta>)
-  //     FormatR    = format of result r
+  //     FormatR   = format of result r
+  //     FormatX   = format of operand x (deduced from x)
   //     ProjSpec  = projection specification type (ProjectionSpec<...>)
   // - Operands:
   //     x         = P3109 value, format FormatX
@@ -18,7 +18,7 @@ namespace p3109 {
   // - Result:
   //     r         = P3109 value, format FormatR
   //
-  template <typename FormatX, typename FormatR, typename ProjSpec = ProjectionSpec<NearestTiesToEven>>
+  template <typename FormatR, typename FormatX, typename ProjSpec = ProjectionSpec<NearestTiesToEven, SatFinite>>
   FormatR Sqrt(FormatX x, ProjSpec projSpec = ProjSpec{})
   {
     // Canonical Sqrt cases (from wSqrt.tex):

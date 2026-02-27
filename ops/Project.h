@@ -28,7 +28,7 @@ namespace p3109 {
   {
     static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
 
-    if constexpr (Format::domain == Domain::Finite)
+    if constexpr (!Format::is_extended)
     {
       if (sat != SaturationMode::SatFinite)
         throw std::invalid_argument("Finite-domain Project requires SatFinite");

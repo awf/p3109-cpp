@@ -54,13 +54,14 @@ namespace p3109 {
   mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
     static_assert(std::is_base_of_v<RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
+    constexpr bool is_signed = (Sigma == Signedness::Signed);
 
     ensure_mpfr_precision();
 
     if (boost::math::isnan(X))
       return X;
 
-    const mpfr_float minFinite = (Sigma == Signedness::Signed) ? -maxFinite : mpfr_float(0.0);
+    const mpfr_float minFinite = is_signed ? -maxFinite : mpfr_float(0.0);
 
     const auto clamp_finite = [&]() -> mpfr_float {
       if (X > maxFinite)
@@ -80,7 +81,7 @@ namespace p3109 {
     case SaturationMode::SatPropagate:
       if (boost::math::isinf(X))
       {
-        if constexpr (Sigma == Signedness::Unsigned)
+        if constexpr (!is_signed)
           return (X > 0) ? mpfr_inf : mpfr_float(0.0);
         return X;
       }
@@ -91,7 +92,7 @@ namespace p3109 {
       {
         if (X > 0)
           return mpfr_inf;
-        if constexpr (Sigma == Signedness::Signed)
+        if constexpr (is_signed)
           return -mpfr_inf;
         return mpfr_float(0.0);
       }
@@ -101,7 +102,7 @@ namespace p3109 {
 
       if (X < minFinite)
       {
-        if constexpr (Sigma == Signedness::Unsigned)
+        if constexpr (!is_signed)
           return mpfr_float(0.0);
         return detail::ovf_to_inf_negative(roundMode) ? -mpfr_inf : minFinite;
       }

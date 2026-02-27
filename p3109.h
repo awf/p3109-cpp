@@ -57,6 +57,7 @@ namespace p3109 {
   template <unsigned K, unsigned P, Signedness Sigma, Domain Delta>
   struct binary {
     static constexpr bool is_signed = (Sigma == Signedness::Signed);
+    static constexpr bool is_extended = (Delta == Domain::Extended);
 
     static_assert(3 <= K, "K must be at least 3");
     static_assert(1 <= P, "P must be at least 1");
@@ -110,7 +111,7 @@ namespace p3109 {
       out += "p";
       out += std::to_string(P);
       out += (is_signed ? "s" : "u");
-      out += (Delta == Domain::Finite ? "f" : "x");
+      out += (is_extended ? "e" : "f");
       return out;
     }
   };

@@ -26,14 +26,12 @@ namespace p3109 {
 
     constexpr unsigned K = Format::bitwidth;
     constexpr unsigned P = Format::precision;
-    constexpr Signedness Sigma = Format::signedness;
-    constexpr Domain Delta = Format::domain;
     constexpr std::uint64_t two_to_k = pow2_u64(K);
     constexpr std::uint64_t two_to_km1 = pow2_u64(K - 1);
 
     // NaN codepoints
     std::uint64_t codepoint = x.codepoint;
-    if (Sigma == Signedness::Signed)
+    if (Format::is_signed)
     {
       if (codepoint == two_to_km1)
         return mpfr_nan;
@@ -45,9 +43,9 @@ namespace p3109 {
     }
 
     // Infinity codepoints (Extended domain only)
-    if (Delta == Domain::Extended)
+    if constexpr (Format::is_extended)
     {
-      if (Sigma == Signedness::Signed)
+      if (Format::is_signed)
       {
         if (codepoint == (two_to_km1 - 1))
           return mpfr_inf;
@@ -63,7 +61,7 @@ namespace p3109 {
 
     // Signed reflection rule:
     // DecodeAux(Signed, domain, x) = -DecodeAux(Signed, domain, x - 2^(K-1)) for 2^(K-1) < x < 2^K
-    if constexpr (Sigma == Signedness::Signed)
+    if constexpr (Format::is_signed)
     {
       if (codepoint > two_to_km1 && codepoint < two_to_k)
       {

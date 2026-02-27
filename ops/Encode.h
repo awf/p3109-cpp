@@ -30,26 +30,24 @@ namespace p3109 {
 
     constexpr unsigned K = Format::bitwidth;
     constexpr unsigned P = Format::precision;
-    constexpr Signedness Sigma = Format::signedness;
-    constexpr Domain Delta = Format::domain;
     constexpr std::uint64_t two_to_k = pow2_u64(K);
     constexpr std::uint64_t two_to_km1 = pow2_u64(K - 1);
 
     if (boost::math::isnan(X))
-      return (Sigma == Signedness::Signed) ? two_to_km1 : (two_to_k - 1);
+      return Format::is_signed ? two_to_km1 : (two_to_k - 1);
 
     if (boost::math::isinf(X))
     {
       if (X > 0)
-        return (Sigma == Signedness::Signed) ? (two_to_km1 - 1) : (two_to_k - 2);
+        return Format::is_signed ? (two_to_km1 - 1) : (two_to_k - 2);
 
-      if constexpr (Sigma == Signedness::Signed)
+      if constexpr (Format::is_signed)
         return EncodeAux<Format>(-X) + two_to_km1;
 
       return two_to_k - 1;
     }
 
-    if constexpr (Sigma == Signedness::Signed)
+    if constexpr (Format::is_signed)
     {
       if (X < 0)
         return EncodeAux<Format>(-X) + two_to_km1;

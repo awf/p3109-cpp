@@ -66,3 +66,8 @@ add_executable(test_is_zero tests/test_is_zero.cpp tests/test_utils.cpp)
 target_include_directories(test_is_zero PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_is_zero PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 add_test(NAME is_zero COMMAND test_is_zero)
+
+add_executable(test_format tests/test_format.cpp tests/test_utils.cpp)
+target_include_directories(test_format PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_format PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME format COMMAND test_format)

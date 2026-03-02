@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdexcept>
 #include <type_traits>
 
 #include "ops/Format.h"
@@ -23,31 +22,21 @@ namespace p3109 {
   //   S = Saturate(R, MaxFinite(Format), sat, round)
   //   x = Encode(S)
 
-  template <typename Format, typename RoundingMode = NearestTiesToEven>
-  Format Project(mpfr_float X, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
+  template <typename Format, typename RoundingMode, typename SM>
+    requires(Format::is_extended || std::is_same_v<SM, SatFinite>)
+  Format Project(mpfr_float X, ProjectionSpec<RoundingMode, SM> projectionSpec)
   {
     static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
-
-    if constexpr (!Format::is_extended)
-    {
-      if (sat != SaturationMode::SatFinite)
-        throw std::invalid_argument("Finite-domain Project requires SatFinite");
-    }
+    static_assert(std::is_base_of_v<p3109::SaturationMode, SM>, "SM must derive from SaturationMode");
 
     if (boost::math::isnan(X))
       return Encode<Format>(X);
 
     constexpr int bias = Format::exponent_bias;
     const mpfr_float max_finite = Decode(MaxFiniteOf<Format>());
-    const mpfr_float rounded = RoundToPrecision<Format::precision, bias, RoundingMode>(X, roundMode);
+    const mpfr_float rounded = RoundToPrecision<Format::precision, bias, RoundingMode>(X, projectionSpec.round);
     const mpfr_float saturated =
-      Saturate<Format::signedness, Format::domain, RoundingMode>(rounded, max_finite, sat, roundMode);
+      Saturate<Format::signedness, Format::domain, SM, RoundingMode>(rounded, max_finite, projectionSpec.round);
     return Encode<Format>(saturated);
-  }
-
-  template <typename Format, typename RoundingMode, SaturationMode Sat>
-  Format Project(mpfr_float X, ProjectionSpec<RoundingMode, Sat> projectionSpec)
-  {
-    return Project<Format, RoundingMode>(X, Sat, projectionSpec.round);
   }
 } // namespace p3109

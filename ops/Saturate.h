@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdexcept>
-#include <string>
 #include <type_traits>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -9,31 +8,32 @@
 #include "p3109.h"
 
 namespace p3109 {
-  // Saturate<Sigma, Delta, RM>(X, maxFinite, sat, roundMode) -> Z
+  // Saturate<Sigma, Delta, SM, RM>(X, maxFinite, roundMode) -> Z
   //
   // Structured definition alignment (main.tex §Saturate):
   // - Parameters:
   //     Sigma    = signedness (Signed/Unsigned)
   //     Delta    = domain (Finite/Extended)
+  //     SM       = saturation mode policy type (SatFinite, SatPropagate, OvfInf)
   //     RM       = rounding mode policy type
   // - Operands:
   //     X         = real value (already rounded)
   //     maxFinite = maximum finite value for the format (Format or decoded value)
-  //     sat       = saturation mode (SatFinite, SatPropagate, OvfInf)
   //     roundMode = rounding mode policy instance (for OvfInf branch)
   // - Result:
   //     Z = saturated real value (possibly ±inf, maxFinite, minFinite, or X)
   //
   // Behavior mapping:
-  //   - If sat == SatFinite: clamp to [minFinite, maxFinite], inf → min/max
-  //   - If sat == SatPropagate: propagate ±inf, clamp finite, unsigned: -inf→0
-  //   - If sat == OvfInf: overflow to ±inf or clamp, depending on RM and Sigma
+  //   - If SM == SatFinite: clamp to [minFinite, maxFinite], inf → min/max
+  //   - If SM == SatPropagate: propagate ±inf, clamp finite, unsigned: -inf→0
+  //   - If SM == OvfInf: overflow to ±inf or clamp, depending on RM and Sigma
   //
   // See main.tex for full details and edge case handling.
 
-  template <Signedness Sigma, Domain Delta, typename RoundingMode>
-  mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
+  template <Signedness Sigma, Domain Delta, typename SM, typename RoundingMode>
+  mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, RoundingMode roundMode = RoundingMode{})
   {
+    static_assert(std::is_base_of_v<p3109::SaturationMode, SM>, "SM must derive from SaturationMode");
     static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
     constexpr bool is_signed = (Sigma == Signedness::Signed);
     constexpr bool is_extended = (Delta == Domain::Extended);
@@ -55,7 +55,7 @@ namespace p3109 {
     if (Mlo <= X && X <= Mhi)
       return X;
 
-    if (sat == SaturationMode::SatFinite)
+    if constexpr (std::is_same_v<SM, SatFinite>)
     {
       // ωSaturate(SatFinite, *, +∞, *, *) -> M^hi
       if (is_pinf)
@@ -73,7 +73,7 @@ namespace p3109 {
       if (X >= Mhi)
         return Mhi;
     }
-    else if (sat == SaturationMode::SatPropagate)
+    else if constexpr (std::is_same_v<SM, SatPropagate>)
     {
       // ωSaturate(SatPropagate, *, +∞, *, Extended) -> +∞
       if (is_pinf && is_extended)
@@ -99,7 +99,7 @@ namespace p3109 {
       if (X >= Mhi)
         return Mhi;
     }
-    else if (sat == SaturationMode::OvfInf)
+    else if constexpr (std::is_same_v<SM, p3109::OvfInf>)
     {
       // ωSaturate(OvfInf, *, +∞, *, Extended) -> +∞
       if (is_pinf && is_extended)
@@ -126,7 +126,7 @@ namespace p3109 {
         return Mhi;
 
       // ωSaturate(OvfInf, ToOdd, X, Unsigned, *) if X >= M^hi -> M^hi
-      if (!is_signed && std::is_same_v<RoundingMode, ToOdd>)
+      if constexpr (!is_signed && std::is_same_v<RoundingMode, ToOdd>)
       {
         if (X >= Mhi)
           return Mhi;
@@ -148,6 +148,10 @@ namespace p3109 {
       if (X >= Mhi)
         return Mhi;
     }
-    throw std::logic_error("Saturate: unhandled case (sat=" + std::to_string(static_cast<int>(sat)) + ")");
+    else
+    {
+      static_assert(std::is_base_of_v<p3109::SaturationMode, SM>, "Unsupported saturation mode");
+    }
+    return X; // Should never reach here
   }
 } // namespace p3109

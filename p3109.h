@@ -42,16 +42,15 @@ namespace p3109 {
   template <unsigned N>
   using StochasticC = Stochastic<StochasticVariant::C, N>;
 
-  enum class SaturationMode {
-    SatFinite,
-    SatPropagate,
-    OvfInf,
-  };
+  struct SaturationMode {};
+  struct SatFinite : SaturationMode {};
+  struct SatPropagate : SaturationMode {};
+  struct OvfInf : SaturationMode {};
 
-  template <typename RoundingMode, SaturationMode Saturate>
+  template <typename RoundingMode, typename SaturationMode>
   struct ProjectionSpec {
+    static_assert(std::is_base_of_v<p3109::SaturationMode, SaturationMode>, "SM must derive from SaturationMode");
     RoundingMode round;
-    static constexpr SaturationMode saturate = Saturate;
   };
 
   template <unsigned K, unsigned P, Signedness Sigma, Domain Delta>
@@ -156,4 +155,9 @@ namespace p3109 {
 #include "ops/RoundToPrecision.h"
 #include "ops/Saturate.h"
 #include "ops/Project.h"
+#include "ops/Abs.h"
+#include "ops/Add.h"
+#include "ops/CompareEqual.h"
+#include "ops/FMA.h"
+#include "ops/IsZero.h"
 #include "ops/Sqrt.h"

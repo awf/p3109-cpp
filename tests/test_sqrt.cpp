@@ -5,7 +5,7 @@
 #include "test_utils.h"
 
 template <typename FormatX, typename FormatR,
-  typename ProjSpec = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SaturationMode::SatFinite>>
+  typename ProjSpec = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SatFinite>>
 struct TestSqrt {
   static bool test_nan()
   {
@@ -82,12 +82,12 @@ int main()
   using AllFormats = std::tuple<Binary8p3se, Binary8p4se, Binary8p3sf, Binary8p4sf, Binary8p3uf, Binary8p4uf>;
   run_sqrt_cross_product(s, AllFormats{}, AllFormats{});
 
-  using RTZF = p3109::ProjectionSpec<p3109::TowardZero, p3109::SaturationMode::SatFinite>;
+  using RTZF = p3109::ProjectionSpec<p3109::TowardZero, p3109::SatFinite>;
   TestSqrt<Binary8p3se, Binary8p3se, RTZF>::run(s);
 
   // Single-format stochastic test
   s.with_path("stochastic", [&s] {
-    using SR = p3109::ProjectionSpec<p3109::StochasticB<8>, p3109::SaturationMode::SatFinite>;
+    using SR = p3109::ProjectionSpec<p3109::StochasticB<8>, p3109::SatFinite>;
     const auto x = p3109::Encode<Binary8p4se>(p3109::mpfr_float(4.0));
     unsigned random_bits = 7;
     const auto z = p3109::Sqrt<Binary8p4se>(x, SR{{random_bits}});

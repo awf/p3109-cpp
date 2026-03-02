@@ -41,3 +41,28 @@ add_executable(test_sqrt tests/test_sqrt.cpp tests/test_utils.cpp)
 target_include_directories(test_sqrt PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_sqrt PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 add_test(NAME sqrt COMMAND test_sqrt)
+
+add_executable(test_abs tests/test_abs.cpp tests/test_utils.cpp)
+target_include_directories(test_abs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_abs PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME abs COMMAND test_abs)
+
+add_executable(test_add tests/test_add.cpp tests/test_utils.cpp)
+target_include_directories(test_add PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_add PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME add COMMAND test_add)
+
+add_executable(test_fma tests/test_fma.cpp tests/test_utils.cpp)
+target_include_directories(test_fma PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_fma PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME fma COMMAND test_fma)
+
+add_executable(test_compare_equal tests/test_compare_equal.cpp tests/test_utils.cpp)
+target_include_directories(test_compare_equal PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_compare_equal PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME compare_equal COMMAND test_compare_equal)
+
+add_executable(test_is_zero tests/test_is_zero.cpp tests/test_utils.cpp)
+target_include_directories(test_is_zero PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_is_zero PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME is_zero COMMAND test_is_zero)

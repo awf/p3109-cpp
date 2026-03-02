@@ -171,7 +171,6 @@ namespace p3109 {
 #include "ops/ArcSinh.h"
 #include "ops/ArcTan.h"
 #include "ops/ArcTan2.h"
-#include "ops/ArcTan2Alt.h"
 #include "ops/ArcTan2Pi.h"
 #include "ops/ArcTanPi.h"
 #include "ops/ArcTanh.h"

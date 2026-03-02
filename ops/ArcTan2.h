@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "ops/Decode.h"
 #include "ops/Project.h"
 #include "p3109.h"
@@ -56,7 +58,8 @@ namespace p3109 {
       return Project<FormatR>(atan(dy / dx), projSpec);
     if (dy > 0 && dx < 0)
       return Project<FormatR>(atan(dy / dx) + pi, projSpec);
-    // dy < 0 && dx < 0
-    return Project<FormatR>(atan(dy / dx) - pi, projSpec);
+    if (dy < 0 && dx < 0)
+      return Project<FormatR>(atan(dy / dx) - pi, projSpec);
+    throw std::logic_error("ArcTan2: unhandled finite case");
   }
 } // namespace p3109

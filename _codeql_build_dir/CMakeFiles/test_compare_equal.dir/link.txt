@@ -1,0 +1,1 @@
+/tmp/codeql-scratch-60b99379ad017617/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/test_compare_equal.dir/link.d CMakeFiles/test_compare_equal.dir/tests/test_compare_equal.cpp.o CMakeFiles/test_compare_equal.dir/tests/test_utils.cpp.o -o test_compare_equal  /usr/lib/x86_64-linux-gnu/libmpfr.so /usr/lib/x86_64-linux-gnu/libgmp.so

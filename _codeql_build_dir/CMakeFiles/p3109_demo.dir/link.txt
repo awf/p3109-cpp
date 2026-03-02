@@ -1,0 +1,1 @@
+/tmp/codeql-scratch-60b99379ad017617/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/p3109_demo.dir/link.d CMakeFiles/p3109_demo.dir/p3109.cpp.o -o p3109_demo  /usr/lib/x86_64-linux-gnu/libmpfr.so /usr/lib/x86_64-linux-gnu/libgmp.so

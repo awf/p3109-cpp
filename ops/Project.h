@@ -23,11 +23,11 @@ namespace p3109 {
   //   x = Encode(S)
 
   template <typename Format, typename RoundingMode, typename SM>
+    requires(Format::is_extended || std::is_same_v<SM, SatFinite>)
   Format Project(mpfr_float X, ProjectionSpec<RoundingMode, SM> projectionSpec)
   {
     static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
     static_assert(std::is_base_of_v<p3109::SaturationMode, SM>, "SM must derive from SaturationMode");
-    static_assert(Format::is_extended || std::is_same_v<SM, SatFinite>, "Finite-domain Project requires SatFinite");
 
     if (boost::math::isnan(X))
       return Encode<Format>(X);

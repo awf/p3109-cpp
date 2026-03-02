@@ -83,11 +83,11 @@ struct TestProjectOps {
       z.codepoint == (p3109::pow2_u64(K - 1) - 2), "Project OvfInf + TowardZero should clamp to max finite codepoint");
   }
 
-  // test_project_finite_requires_satfinite is now enforced at compile time via static_assert
-  // in Project. Uncommenting the following would produce a compilation error:
-  //   using Format = p3109::binary<K, P, Sigma, p3109::Domain::Finite>;
-  //   using PS = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SatPropagate>;
-  //   (void)p3109::Project<Format>(p3109::mpfr_float(1.0), PS{});
+  // Compile-time check: Finite-domain Project with non-SatFinite saturation must not compile.
+  using FiniteFormat = p3109::binary<K, P, Sigma, p3109::Domain::Finite>;
+  using BadPS = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SatPropagate>;
+  static_assert(!requires { p3109::Project<FiniteFormat>(p3109::mpfr_float(1.0), BadPS{}); },
+    "Finite-domain Project with SatPropagate should be rejected");
 
   static void run(test_utils::suite &s)
   {

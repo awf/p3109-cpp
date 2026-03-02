@@ -111,3 +111,8 @@ add_executable(test_ternary tests/test_ternary.cpp tests/test_utils.cpp)
 target_include_directories(test_ternary PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_ternary PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 add_test(NAME ternary COMMAND test_ternary)
+
+add_executable(test_format tests/test_format.cpp tests/test_utils.cpp)
+target_include_directories(test_format PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_format PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME format COMMAND test_format)

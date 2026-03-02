@@ -34,12 +34,12 @@ namespace p3109 {
     if (Format::is_signed)
     {
       if (codepoint == two_to_km1)
-        return mpfr_nan;
+        return mpfr_nan();
     }
     else
     {
       if (codepoint == (two_to_k - 1))
-        return mpfr_nan;
+        return mpfr_nan();
     }
 
     // Infinity codepoints (Extended domain only)
@@ -48,14 +48,14 @@ namespace p3109 {
       if (Format::is_signed)
       {
         if (codepoint == (two_to_km1 - 1))
-          return mpfr_inf;
+          return mpfr_inf();
         if (codepoint == (two_to_k - 1))
-          return -mpfr_inf;
+          return -mpfr_inf();
       }
       else
       {
         if (codepoint == (two_to_k - 2))
-          return mpfr_inf;
+          return mpfr_inf();
       }
     }
 

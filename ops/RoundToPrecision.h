@@ -18,7 +18,7 @@ namespace p3109 {
     inline long long rnite_ties_to_even(const mpfr_float &x)
     {
       const long long f = floor(x).convert_to<long long>();
-      const mpfr_float half = mpfr_float(f) + mpfr_half;
+      const mpfr_float half = mpfr_float(f) + mpfr_half();
       if ((x < half) || (x == half && is_even_i64(f)))
         return f;
       return f + 1;
@@ -103,11 +103,11 @@ namespace p3109 {
     }
     else if constexpr (std::is_same_v<RoundingMode, NearestTiesToAway>)
     {
-      round_away = fraction >= mpfr_half;
+      round_away = fraction >= mpfr_half();
     }
     else if constexpr (std::is_same_v<RoundingMode, NearestTiesToEven>)
     {
-      round_away = (fraction > mpfr_half) || ((fraction == mpfr_half) && !code_is_even);
+      round_away = (fraction > mpfr_half()) || ((fraction == mpfr_half()) && !code_is_even);
     }
     else if constexpr (std::is_same_v<RoundingMode, ToOdd>)
     {

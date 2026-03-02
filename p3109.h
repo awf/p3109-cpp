@@ -117,9 +117,6 @@ namespace p3109 {
   };
 
   using mpfr_float = boost::multiprecision::mpfr_float;
-  const mpfr_float mpfr_nan = std::numeric_limits<mpfr_float>::quiet_NaN();
-  const mpfr_float mpfr_inf = std::numeric_limits<mpfr_float>::infinity();
-  const mpfr_float mpfr_half = mpfr_float("0.5");
 
   inline void ensure_mpfr_precision()
   {
@@ -129,6 +126,27 @@ namespace p3109 {
       return true;
     }();
     (void)configured;
+  }
+
+  // These are functions (not globals) to avoid static-init-order issues:
+  // each ensures MPFR precision is configured before the value is first created.
+  inline const mpfr_float &mpfr_nan()
+  {
+    ensure_mpfr_precision();
+    static const mpfr_float val = std::numeric_limits<mpfr_float>::quiet_NaN();
+    return val;
+  }
+  inline const mpfr_float &mpfr_inf()
+  {
+    ensure_mpfr_precision();
+    static const mpfr_float val = std::numeric_limits<mpfr_float>::infinity();
+    return val;
+  }
+  inline const mpfr_float &mpfr_half()
+  {
+    ensure_mpfr_precision();
+    static const mpfr_float val = mpfr_float("0.5");
+    return val;
   }
 
 } // namespace p3109

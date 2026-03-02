@@ -53,23 +53,23 @@ struct TestEncode {
     {
       bool ok = true;
       ok &= test_utils::expect_true(
-        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == two_to_km1,
+        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan()).codepoint == two_to_km1,
         "Signed NaN codepoint should be 2^(K-1)");
       ok &= test_utils::expect_true(
-        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_km1 - 1),
+        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf()).codepoint == (two_to_km1 - 1),
         "Signed +inf codepoint should be 2^(K-1)-1");
       ok &= test_utils::expect_true(
-        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(-p3109::mpfr_inf).codepoint == (two_to_k - 1),
+        p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(-p3109::mpfr_inf()).codepoint == (two_to_k - 1),
         "Signed -inf codepoint should be 2^K-1");
       return ok;
     }
 
     bool ok = true;
     ok &= test_utils::expect_true(
-      p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan).codepoint == (two_to_k - 1),
+      p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_nan()).codepoint == (two_to_k - 1),
       "Unsigned NaN codepoint should be 2^K-1");
     ok &= test_utils::expect_true(
-      p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf).codepoint == (two_to_k - 2),
+      p3109::Encode<p3109::binary<K, P, Sigma, Delta>>(p3109::mpfr_inf()).codepoint == (two_to_k - 2),
       "Unsigned +inf codepoint should be 2^K-2");
     return ok;
   }

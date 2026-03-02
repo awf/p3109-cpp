@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+#include <string>
 #include <type_traits>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -75,7 +77,7 @@ namespace p3109 {
     {
       // ωSaturate(SatPropagate, *, +∞, *, Extended) -> +∞
       if (is_pinf && is_extended)
-        return mpfr_inf;
+        return mpfr_inf();
 
       // ωSaturate(SatPropagate, *, +∞, *, *) -> M^hi
       if (is_pinf)
@@ -83,7 +85,7 @@ namespace p3109 {
 
       // ωSaturate(SatPropagate, *, −∞, Signed, Extended) -> −∞
       if (is_ninf && is_signed && is_extended)
-        return -mpfr_inf;
+        return -mpfr_inf();
 
       // ωSaturate(SatPropagate, *, −∞, *, *) -> M^lo
       if (is_ninf)
@@ -101,7 +103,7 @@ namespace p3109 {
     {
       // ωSaturate(OvfInf, *, +∞, *, Extended) -> +∞
       if (is_pinf && is_extended)
-        return mpfr_inf;
+        return mpfr_inf();
 
       // ωSaturate(OvfInf, *, +∞, *, *) -> M^hi
       if (is_pinf)
@@ -109,7 +111,7 @@ namespace p3109 {
 
       // ωSaturate(OvfInf, *, −∞, Signed, Extended) -> −∞
       if (is_ninf && is_signed && is_extended)
-        return -mpfr_inf;
+        return -mpfr_inf();
 
       // ωSaturate(OvfInf, *, −∞, *, *) -> M^lo
       if (is_ninf)
@@ -132,7 +134,7 @@ namespace p3109 {
 
       // ωSaturate(OvfInf, *, X, Signed, Extended) if X <= M^lo -> −∞
       if (X <= Mlo && is_signed && is_extended)
-        return -mpfr_inf;
+        return -mpfr_inf();
 
       // ωSaturate(OvfInf, *, X, *, *) if X <= M^lo -> M^lo
       if (X <= Mlo)
@@ -140,13 +142,12 @@ namespace p3109 {
 
       // ωSaturate(OvfInf, *, X, *, Extended) if X >= M^hi -> +∞
       if (X >= Mhi && is_extended)
-        return mpfr_inf;
+        return mpfr_inf();
 
       // ωSaturate(OvfInf, *, X, *, *) if X >= M^hi -> M^hi
       if (X >= Mhi)
         return Mhi;
     }
-    assert(false);
-    return X; // Should never reach here
+    throw std::logic_error("Saturate: unhandled case (sat=" + std::to_string(static_cast<int>(sat)) + ")");
   }
 } // namespace p3109

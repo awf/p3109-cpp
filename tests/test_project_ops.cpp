@@ -30,7 +30,7 @@ struct TestProjectOps {
   {
     const auto max_finite = p3109::Decode(float_type{p3109::pow2_u64(K - 1) - 2});
     const auto z = p3109::Saturate<Sigma, Delta, p3109::NearestTiesToEven>(
-      p3109::mpfr_inf, max_finite, p3109::SaturationMode::SatFinite);
+      p3109::mpfr_inf(), max_finite, p3109::SaturationMode::SatFinite);
     return test_utils::expect_equal(z, max_finite, "SatFinite should clamp +inf to max finite");
   }
 
@@ -38,7 +38,7 @@ struct TestProjectOps {
   {
     const auto max_finite = p3109::Decode(float_type{p3109::pow2_u64(K - 1) - 2});
     const auto z = p3109::Saturate<Sigma, Delta, p3109::NearestTiesToEven>(
-      p3109::mpfr_inf, max_finite, p3109::SaturationMode::SatPropagate);
+      p3109::mpfr_inf(), max_finite, p3109::SaturationMode::SatPropagate);
     return test_utils::expect_true(boost::math::isinf(z) && z > 0, "SatPropagate should preserve +inf");
   }
 
@@ -62,7 +62,8 @@ struct TestProjectOps {
   static bool test_project_nan()
   {
     using Format = p3109::binary<K, P, Sigma, Delta>;
-    const auto z = p3109::Project<Format, p3109::NearestTiesToEven>(p3109::mpfr_nan, p3109::SaturationMode::SatFinite);
+    const auto z =
+      p3109::Project<Format, p3109::NearestTiesToEven>(p3109::mpfr_nan(), p3109::SaturationMode::SatFinite);
     return test_utils::expect_true(z.codepoint == p3109::pow2_u64(K - 1), "Project(NaN) should return NaN codepoint");
   }
 

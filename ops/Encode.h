@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <stdexcept>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -38,6 +39,9 @@ namespace p3109 {
 
     if (boost::math::isinf(X))
     {
+      if constexpr (!Format::is_extended)
+        throw std::invalid_argument("Encode: cannot encode infinity in a Finite-domain format");
+
       if (X > 0)
         return Format::is_signed ? (two_to_km1 - 1) : (two_to_k - 2);
 

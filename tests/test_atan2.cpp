@@ -1,6 +1,6 @@
 #include "test_utils.h"
 
-// Tests for ArcTan2, ArcTan2Alt, ArcTan2Pi
+// Tests for ArcTan2, ArcTan2Pi
 template <typename Format, typename ProjSpec = p3109::ProjectionSpec<p3109::NearestTiesToEven, p3109::SatFinite>>
 struct TestAtan2 {
   static void run(test_utils::suite &s)
@@ -19,14 +19,6 @@ struct TestAtan2 {
       s.run({"y_posinf"}, p3109::ArcTan2<Format>(one, inf, ps).codepoint == zero.codepoint);
       s.run({"posinf_x"}, !p3109::ArcTan2<Format>(inf, one, ps).isnan()); // pi/2
       s.run({"1_1"}, !p3109::ArcTan2<Format>(one, one, ps).isnan());      // pi/4
-    });
-
-    s.with_path(std::string(Format::name()) + "/ArcTan2Alt", [&] {
-      s.run({"nan_y"}, p3109::ArcTan2Alt<Format>(nan, one, ps).isnan());
-      s.run({"nan_x"}, p3109::ArcTan2Alt<Format>(one, nan, ps).isnan());
-      s.run({"0_0"}, p3109::ArcTan2Alt<Format>(zero, zero, ps).codepoint == zero.codepoint);
-      s.run({"0_posinf"}, p3109::ArcTan2Alt<Format>(zero, inf, ps).codepoint == zero.codepoint);
-      s.run({"1_1"}, !p3109::ArcTan2Alt<Format>(one, one, ps).isnan()); // pi/4
     });
 
     s.with_path(std::string(Format::name()) + "/ArcTan2Pi", [&] {

@@ -11,9 +11,9 @@ namespace p3109 {
     if (x.isnan())
       return FormatR::nan;
     if (x.isposinf())
-      return Project<FormatR>(mpfr_float("0.5"), projSpec);
+      return Project<FormatR>(mpfr_half(), projSpec);
     if (x.isneginf())
-      return Project<FormatR>(mpfr_float("-0.5"), projSpec);
+      return Project<FormatR>(-mpfr_half(), projSpec);
     mpfr_float decoded = Decode<FormatX>(x);
     return Project<FormatR>(atan(decoded) / mpfr_pi(), projSpec);
   }

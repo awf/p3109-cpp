@@ -1,1 +1,0 @@
-/tmp/codeql-scratch-60b99379ad017617/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/test_decode.dir/link.d CMakeFiles/test_decode.dir/tests/test_decode.cpp.o CMakeFiles/test_decode.dir/tests/test_utils.cpp.o -o test_decode  /usr/lib/x86_64-linux-gnu/libmpfr.so /usr/lib/x86_64-linux-gnu/libgmp.so

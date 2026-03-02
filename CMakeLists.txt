@@ -41,3 +41,8 @@ add_executable(test_sqrt tests/test_sqrt.cpp tests/test_utils.cpp)
 target_include_directories(test_sqrt PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_sqrt PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
 add_test(NAME sqrt COMMAND test_sqrt)
+
+add_executable(test_format tests/test_format.cpp tests/test_utils.cpp)
+target_include_directories(test_format PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_format PRIVATE Boost::headers ${MPFR_LIBRARY} ${GMP_LIBRARY})
+add_test(NAME format COMMAND test_format)

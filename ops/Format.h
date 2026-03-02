@@ -30,5 +30,19 @@ namespace p3109 {
     }
     return Format{codepoint};
   }
-  // TODO: Add MinPositiveOf, ExponentBiasOf, etc. as needed from main.tex
+  // MinPositiveOf<Format>: Returns the Format value with the minimum positive codepoint for a given format.
+  // This corresponds to codepoint 1, which encodes the smallest positive (subnormal) value.
+  template <typename Format>
+  constexpr Format MinPositiveOf()
+  {
+    return Format{1};
+  }
+
+  // ExponentBiasOf<Format>: Returns the exponent bias for a given format.
+  // (Spec-aligned: bias = 2^(K-P-1) for signed formats, 2^(K-P) for unsigned formats.)
+  template <typename Format>
+  constexpr unsigned ExponentBiasOf()
+  {
+    return Format::exponent_bias;
+  }
 } // namespace p3109

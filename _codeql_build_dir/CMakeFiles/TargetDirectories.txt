@@ -1,9 +1,0 @@
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/p3109_demo.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test_decode.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test_encode.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test_project_ops.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test_sqrt.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test_format.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/test.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/edit_cache.dir
-/home/runner/work/p3109-cpp/p3109-cpp/_codeql_build_dir/CMakeFiles/rebuild_cache.dir

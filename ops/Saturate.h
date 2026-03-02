@@ -28,88 +28,125 @@ namespace p3109 {
   //   - If sat == OvfInf: overflow to ±inf or clamp, depending on RM and Sigma
   //
   // See main.tex for full details and edge case handling.
-  namespace detail {
-    template <typename RoundingMode>
-    inline bool ovf_to_inf_positive(RoundingMode)
-    {
-      if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardNegative>)
-        return false;
-      if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode>)
-        return true;
-      return true;
-    }
-
-    template <typename RoundingMode>
-    inline bool ovf_to_inf_negative(RoundingMode)
-    {
-      if constexpr (std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardPositive>)
-        return false;
-      if constexpr (std::is_base_of_v<p3109::RoundingMode, RoundingMode>)
-        return true;
-      return true;
-    }
-  } // namespace detail
 
   template <Signedness Sigma, Domain Delta, typename RoundingMode>
   mpfr_float Saturate(mpfr_float X, mpfr_float maxFinite, SaturationMode sat, RoundingMode roundMode = RoundingMode{})
   {
     static_assert(std::is_base_of_v<p3109::RoundingMode, RoundingMode>, "RM must derive from RoundingMode");
     constexpr bool is_signed = (Sigma == Signedness::Signed);
+    constexpr bool is_extended = (Delta == Domain::Extended);
 
-    ensure_mpfr_precision();
+    //   M^lo = -MaxFinite if σ = Signed, else 0
+    //   M^hi = MaxFinite
+    const mpfr_float Mlo = is_signed ? -maxFinite : mpfr_float(0.0);
+    const mpfr_float Mhi = maxFinite;
 
+    const bool is_finite = boost::math::isfinite(X);
+    const bool is_pinf = !is_finite && (X > 0);
+    const bool is_ninf = !is_finite && (X < 0);
+
+    // ωSaturate(*, *, NaN, *, *) -> NaN
     if (boost::math::isnan(X))
       return X;
 
-    const mpfr_float minFinite = is_signed ? -maxFinite : mpfr_float(0.0);
-
-    const auto clamp_finite = [&]() -> mpfr_float {
-      if (X > maxFinite)
-        return maxFinite;
-      if (X < minFinite)
-        return minFinite;
+    // ωSaturate(*, *, X, *, *) if M^lo <= X and X <= M^hi -> X
+    if (Mlo <= X && X <= Mhi)
       return X;
-    };
 
-    switch (sat)
+    if (sat == SaturationMode::SatFinite)
     {
-    case SaturationMode::SatFinite:
-      if (boost::math::isinf(X))
-        return (X > 0) ? maxFinite : minFinite;
-      return clamp_finite();
+      // ωSaturate(SatFinite, *, +∞, *, *) -> M^hi
+      if (is_pinf)
+        return Mhi;
 
-    case SaturationMode::SatPropagate:
-      if (boost::math::isinf(X))
-      {
-        if constexpr (!is_signed)
-          return (X > 0) ? mpfr_inf : mpfr_float(0.0);
-        return X;
-      }
-      return clamp_finite();
+      // ωSaturate(SatFinite, *, −∞, *, *) -> M^lo
+      if (is_ninf)
+        return Mlo;
 
-    case SaturationMode::OvfInf:
-      if (boost::math::isinf(X))
-      {
-        if (X > 0)
-          return mpfr_inf;
-        if constexpr (is_signed)
-          return -mpfr_inf;
-        return mpfr_float(0.0);
-      }
+      // ωSaturate(SatFinite, *, X, *, *) if X <= M^lo -> M^lo
+      if (X <= Mlo)
+        return Mlo;
 
-      if (X > maxFinite)
-        return detail::ovf_to_inf_positive(roundMode) ? mpfr_inf : maxFinite;
-
-      if (X < minFinite)
-      {
-        if constexpr (!is_signed)
-          return mpfr_float(0.0);
-        return detail::ovf_to_inf_negative(roundMode) ? -mpfr_inf : minFinite;
-      }
-
-      return X;
+      // ωSaturate(SatFinite, *, X, *, *) if X >= M^hi -> M^hi
+      if (X >= Mhi)
+        return Mhi;
     }
+    else if (sat == SaturationMode::SatPropagate)
+    {
+      // ωSaturate(SatPropagate, *, +∞, *, Extended) -> +∞
+      if (is_pinf && is_extended)
+        return mpfr_inf;
 
-    return X;
+      // ωSaturate(SatPropagate, *, +∞, *, *) -> M^hi
+      if (is_pinf)
+        return Mhi;
+
+      // ωSaturate(SatPropagate, *, −∞, Signed, Extended) -> −∞
+      if (is_ninf && is_signed && is_extended)
+        return -mpfr_inf;
+
+      // ωSaturate(SatPropagate, *, −∞, *, *) -> M^lo
+      if (is_ninf)
+        return Mlo;
+
+      // ωSaturate(SatPropagate, *, X, *, *) if X <= M^lo -> M^lo
+      if (X <= Mlo)
+        return Mlo;
+
+      // ωSaturate(SatPropagate, *, X, *, *) if X >= M^hi -> M^hi
+      if (X >= Mhi)
+        return Mhi;
+    }
+    else if (sat == SaturationMode::OvfInf)
+    {
+      // ωSaturate(OvfInf, *, +∞, *, Extended) -> +∞
+      if (is_pinf && is_extended)
+        return mpfr_inf;
+
+      // ωSaturate(OvfInf, *, +∞, *, *) -> M^hi
+      if (is_pinf)
+        return Mhi;
+
+      // ωSaturate(OvfInf, *, −∞, Signed, Extended) -> −∞
+      if (is_ninf && is_signed && is_extended)
+        return -mpfr_inf;
+
+      // ωSaturate(OvfInf, *, −∞, *, *) -> M^lo
+      if (is_ninf)
+        return Mlo;
+
+      // ωSaturate(OvfInf, TowardZero ∨ TowardPositive, X, *, *) if X <= M^lo -> M^lo
+      if ((std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardPositive>) && X <= Mlo)
+        return Mlo;
+
+      // ωSaturate(OvfInf, TowardZero ∨ TowardNegative, X, *, *) if X >= M^hi -> M^hi
+      if ((std::is_same_v<RoundingMode, TowardZero> || std::is_same_v<RoundingMode, TowardNegative>) && X >= Mhi)
+        return Mhi;
+
+      // ωSaturate(OvfInf, ToOdd, X, Unsigned, *) if X >= M^hi -> M^hi
+      if (!is_signed && std::is_same_v<RoundingMode, ToOdd>)
+      {
+        if (X >= Mhi)
+          return Mhi;
+      }
+
+      // ωSaturate(OvfInf, *, X, Signed, Extended) if X <= M^lo -> −∞
+      if (X <= Mlo && is_signed && is_extended)
+        return -mpfr_inf;
+
+      // ωSaturate(OvfInf, *, X, *, *) if X <= M^lo -> M^lo
+      if (X <= Mlo)
+        return Mlo;
+
+      // ωSaturate(OvfInf, *, X, *, Extended) if X >= M^hi -> +∞
+      if (X >= Mhi && is_extended)
+        return mpfr_inf;
+
+      // ωSaturate(OvfInf, *, X, *, *) if X >= M^hi -> M^hi
+      if (X >= Mhi)
+        return Mhi;
+    }
+    assert(false);
+    return X; // Should never reach here
   }
 } // namespace p3109
